@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Guerre des Clans 🐾</title>
+    <style>
+        :root {
+            --thunder-green: #2d5a27; /* Clan du Tonnerre */
+            --river-blue: #3a7ca5;    /* Clan de la Rivière */
+            --shadow-purple: #3e2a47; /* Clan de l'Ombre */
+            --wind-brown: #96705b;    /* Clan du Vent */
+            --star-gold: #f1c40f;     /* Clan de l'Astre */
+            --forest-dark: #1a2421;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            margin: 0;
+            background: #e8e6e1;
+            color: var(--forest-dark);
+        }
+
+        nav {
+            background: var(--thunder-green);
+            color: white;
+            height: 70px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .version-tag { font-size: 0.8rem; opacity: 0.8; }
+
+        #menu-clans {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .clan-card {
+            padding: 30px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .clan-card:hover { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+        .tonnerre { background: var(--thunder-green); border-bottom: 5px solid #1e3d1a; }
+        .riviere { background: var(--river-blue); border-bottom: 5px solid #2a5a78; }
+        .ombre { background: var(--shadow-purple); border-bottom: 5px solid #281b2e; }
+        .vent { background: var(--wind-brown); border-bottom: 5px solid #6d5142; }
+
+        main { padding: 20px; max-width: 900px; margin: 0 auto; text-align: center; }
+
+        .section { display: none; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .active { display: block; animation: fadeIn 0.5s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .cat-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .cat-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .rank { font-size: 0.8rem; color: #777; display: block; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <h1 onclick="showSection('home')">WARRIOR CATS 🐾</h1>
+        <span class="version-tag">v 1.0.00</span>
+    </nav>
+
+    <main>
+        <div id="home" class="section active">
+            <h2>Choisissez votre Allégeance</h2>
+            <div id="menu-clans">
+                <div class="clan-card tonnerre" onclick="showClan('Tonnerre')">Clan du Tonnerre</div>
+                <div class="clan-card riviere" onclick="showClan('Riviere')">Clan de la Rivière</div>
+                <div class="clan-card ombre" onclick="showClan('Ombre')">Clan de l'Ombre</div>
+                <div class="clan-card vent" onclick="showClan('Vent')">Clan du Vent</div>
+            </div>
+        </div>
+
+        <div id="clan-view" class="section">
+            <button onclick="showSection('home')" style="float: left;">⬅ Retour</button>
+            <h2 id="clan-title">Nom du Clan</h2>
+            <div id="cat-container" class="cat-list"></div>
+        </div>
+    </main>
+
+    <script>
+        const allegiances = {
+            'Tonnerre': [
+                { nom: "Étoile de Feu", grade: "Chef", bio: "Le chat de feu qui sauvera le Clan." },
+                { nom: "Plume Grise", grade: "Lieutenant", bio: "Le plus fidèle compagnon." },
+                { nom: "Museau Cendré", grade: "Guérisseuse", bio: "Ancienne apprentie guerrière." }
+            ],
+            'Riviere': [
+                { nom: "Étoile Crochue", grade: "Chef", bio: "Un leader marqué par le destin." },
+                { nom: "Pattes de Brume", grade: "Lieutenant", bio: "Fille de l'Étoile Bleue." }
+            ],
+            'Ombre': [
+                { nom: "Étoile du Tigre", grade: "Chef", bio: "L'ambition faite chat." }
+            ],
+            'Vent': [
+                { nom: "Étoile filante", grade: "Chef", bio: "Sage et rapide comme le vent." }
+            ]
+        };
+
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function showClan(clanName) {
+            const title = document.getElementById('clan-title');
+            const container = document.getElementById('cat-container');
+            
+            title.innerText = "Clan du " + clanName;
+            container.innerHTML = "";
+
+            allegiances[clanName].forEach(cat => {
+                const div = document.createElement('div');
+                div.className = "cat-item";
+                div.innerHTML = `
+                    <span class="rank">${cat.grade}</span>
+                    <strong>${cat.nom}</strong>
+                    <p style="font-size: 0.85rem;">${cat.bio}</p>
+                `;
+                container.appendChild(div);
+            });
+
+            showSection('clan-view');
+        }
+    </script>
+</body>
+</html>
