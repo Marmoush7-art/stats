@@ -1,1 +1,3284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>  
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🩵 City Fans</title>
+    <style>
+        :root { --city-sky-blue: #6CABDD; --city-black: #000000;--bg-color: #f0f4f8;--card-color: white;--text-color: #000000; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg-color); color: var(--text-color);padding-bottom: 50px; }
+        
+        #lock-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--city-black); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+        .lock-box { background: white; padding: 40px; border-radius: 20px; color: var(--city-black); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .lock-box input { padding: 12px; border-radius: 10px; border: 2px solid #ccc; width: 200px; font-size: 1rem; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; }
+        .lock-box button { background: var(--city-sky-blue); color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        #lock-error { color: #e74c3c; margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
+        
+        nav { background: var(--city-sky-blue); color: white; height: 65px; position: sticky; top: 0; z-index: 1001; display: flex; align-items: center; justify-content: center; position: sticky; }
+        #btn-menu {position: absolute; left: 20px; }
+        #btn-menu:hover { transform:rotate(90deg); }
+        .version-tag {position: absolute; right: 20px; font-size: 0.8rem; font-weight: bold; }
+        .nav-title { margin: 0; cursor: pointer; }
 
+        .centre-card { background: white; border-radius: 15px; margin-bottom: 20px; display: flex; align-items: center; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: 0.2s; }
+        .centre-card:hover { transform: scale(1.02); }
+        .centre-card img { width: 160px; height: 180px; object-fit: cover; }
+        .centre-info { padding: 20px; text-align: left; flex: 1;}
+        .centre-info h3 { margin-top: 0; color: var(--city-sky-blue); }
+        .centre-info p { margin: 6px 0; font-size: 0.95rem; }
+
+        #menu { position: fixed; left: -280px; top: 0; width: 280px; height: 100vh; background: #1a1a1a; color: white; transition: 0.4s; padding-top: 70px; z-index: 1000; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; }
+        #menu.ouvert { left: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+        .menu-item { padding: 18px 25px; border-bottom: 1px solid #333; cursor: pointer; font-weight: bold; display: flex; align-items: center; color: white; text-decoration: none; }
+        .menu-item-icon { margin-right: 12px; font-size: 1.2rem; min-width: 25px; text-align: center; }
+        .menu-item:hover { background: #005c8f; color: white; transition: 0.25s; }
+        .joueur-link:hover { background: #005c8f; color: white; }
+        
+        .sous-menu { display: none; background: #111; padding-bottom: 10px; }
+        .show { display: block !important; }
+        .cat-titre { color: #888; font-size: 0.75rem; font-weight: bold; padding: 12px 25px 5px 35px; text-transform: uppercase; }
+        .joueur-link { color: var(--city-sky-blue); display: block; padding: 8px 45px; cursor: pointer; font-size: 0.9rem; }
+        main { text-align: center; padding: 30px 15px; max-width: 850px; margin: 0 auto; }
+        .content-section { display: none; }
+        .active { display: block !important; }
+        .box-info { background: var(--city-sky-blue); padding: 30px; border-radius: 15px; margin-top: 25px; color: #000; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; }
+        th, td { padding: 15px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        #photo { max-width: 280px; width: 100%; border-radius: 15px; border: 6px solid var(--city-sky-blue); margin-bottom: 25px; }
+        #photo:hover { transform:scale(1.08); transition:.3s; }
+
+        #jeune-photo{width:180px;height:180px;object-fit:cover;border-radius:50%;display:block;margin:20px auto;}
+
+        .news { animation:slide 5s infinite; }
+
+        .logo-accueil{ width: 400px; height: auto; display: block; margin: 20px auto; animation:float 3s infinite; }
+        
+        .bio-container { background: white; padding: 25px; border-radius: 10px; margin-top: 15px; text-align: left; min-height: 300px; line-height: 1.7; font-size: 1.05rem; }
+
+        .transfert-card { background: white; border: 2px solid var(--city-sky-blue); border-radius: 15px; margin-bottom: 20px; display: flex; align-items: center; cursor: pointer; overflow: hidden; }
+        .transfert-card img { width: 100px; height: 130px; object-fit: cover; }
+        .transfert-info { padding: 15px; text-align: left; color: #000; font-weight: bold; flex: 1; }
+        .transfert-date { font-size: 0.8rem; color: #666; margin-top: 5px; }
+        
+        #chat-messages { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; background: #fff; border-radius: 10px; display: flex; flex-direction: column; text-align: left; }
+        .msg { background: var(--city-sky-blue); color: white; padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; align-self: flex-start; max-width: 80%; word-wrap: break-word; }
+        .chat-container { position: relative; background: #eee; padding: 10px; border-radius: 10px; margin-top: 10px; }
+        .chat-area { display: flex; gap: 8px; align-items: center; }
+        .chat-area input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ccc; outline: none; }
+        .chat-area button { background: var(--city-black); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .emoji-toggle { font-size: 1.5rem; cursor: pointer; background: none; border: none; padding: 0; }
+        
+        .emoji-picker { display: none; position: absolute; bottom: 65px; left: -100px; background: white; border: 2px solid var(--city-sky-blue); border-radius: 15px; padding: 15px; width: 400px; max-height: 350px; overflow-y: auto; grid-template-columns: repeat(9, 1fr); gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 10; }
+        @media (max-width: 600px) { .emoji-picker { width: 280px; left: 10px; grid-template-columns: repeat(6, 1fr); } }
+        .emoji-picker span { font-size: 1.6rem; cursor: pointer; text-align: center; padding: 2px; transition: transform 0.1s; }
+        .emoji-picker span:hover { transform: scale(1.2); background-color: #f0f0f0; border-radius: 5px; }
+
+        .match-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 8px solid var(--city-sky-blue); }
+        .match-header { font-size: 0.8rem; color: #888; margin-bottom: 15px; font-weight: bold; text-transform: uppercase; }
+        .match-main { display: flex; justify-content: space-between; align-items: center; }
+        .team { flex: 1; text-align: center; }
+        .team img { width: 50px; height: 50px; object-fit: contain; }
+        .team p { margin: 8px 0 0; font-weight: bold; font-size: 0.9rem; }
+        .score-center { flex: 1; font-size: 2.2rem; font-weight: 800; color: var(--city-black); }
+        .match-details { margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .side-details h4 { font-size: 0.75rem; margin: 0 0 8px 0; color: var(--city-sky-blue); text-transform: uppercase; }
+        .stat-line { font-size: 0.85rem; margin-bottom: 5px; }
+        .live-badge { background: #e74c3c; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; animation: blink 1.5s infinite; vertical-align: middle; margin-left: 5px; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        
+        .urgent-contract { border-left: 8px solid #e74c3c !important; }
+
+        .compo-field { width: 100%; max-width: 600px; height: 550px; background-color: var(--city-sky-blue); border-radius: 20px; border: 6px solid var(--city-black); margin: 0 auto; padding: 10px; box-sizing: border-box; position: relative; overflow: hidden; }
+        .compo-field { background: linear-gradient( 90deg, rgba(255,255,255,.1) 1px, transparent 1px ), #3b9b5c; }
+        .field-line { position: absolute; background: rgba(255,255,255,0.5); }
+        .field-center-line { top: 50%; left: 0; width: 100%; height: 2px; transform: translateY(-50%); }
+        .field-center-circle { top: 50%; left: 50%; width: 110px; height: 110px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); }
+        
+        .player-spot { width: 70px; height: 95px; position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;transform: translateX(-50%); cursor: pointer; z-index: 10; transition: transform 0.2s; }
+        .player-spot:hover { transform: scale(1.1); }
+        .player-spot.selected { border: 3px solid #e74c3c; border-radius: 10px; box-shadow: 0 0 15px rgba(231, 76, 60, 0.7); }
+
+        .spot-img-holder { width: 60px; height: 60px; background: rgba(255,255,255,0.2); border: 2px dashed var(--city-black); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 5px; }
+        .spot-img-holder img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .spot-img-holder.has-player { border: 3px solid var(--city-black); background: white; }
+        .spot-img-holder.has-player img { display: block; }
+        .spot-img-holder.has-player .spot-label { display: none; }
+
+        .player-stats-box { background: white; margin-top: 25px; padding: 20px; border-radius: 15px; color: var(--city-black); }
+        .player-stats-box h3 { text-align: center; margin-bottom: 20px; color: var(--city-sky-blue); }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .stat-card { background: #eef6fc; border-radius: 12px; padding: 20px; text-align: center; transition: 0.2s; }
+        .stat-card:hover { transform: scale(1.05); background: var(--city-sky-blue); color: white; }
+        .stat-number { display: block; font-size: 2rem; font-weight: 800; }
+        .stat-label { font-size: 0.9rem; margin-top: 5px; display: block; }
+
+        .draft-budget-box{ display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin:20px 0; }
+        .draft-budget-box div{ background:white; padding:20px; border-radius:15px;  min-width:180px; text-align:center; }
+        #draft-carte{ width:100%; max-width:700px; margin:20px auto; }
+        .draft-player-card{ background:white; border:3px solid #6CABDD; border-radius:15px; padding:20px; text-align:center; }
+        .draft-actions{ text-align:center; margin:20px 0; }
+        .draft-actions input{ padding:10px; width:150px; }
+        .draft-actions button{ padding:10px 15px; margin-left:5px; cursor:pointer; }
+        #historique-enchere{ max-width:500px; margin:20px auto; background:white; padding:15px; border-radius:10px; min-height:120px; }
+        .draft-equipes{ display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin-top:20px; }
+        .draft-colonne{ background:white; padding:20px; border-radius:15px; width:280px; }
+        .draft-colonne ul{ list-style:none; padding:0; }
+        .draft-colonne li{ background:#eef6fc; padding:8px; margin-bottom:8px; border-radius:8px; }
+        #draft-resultat{ text-align:center; margin-top:20px; }
+
+        .mercato-card{background:#1f1f1f;color:#fff;border-radius:18px;padding:15px;margin-bottom:15px;box-shadow:0 4px 15px rgba(0,0,0,.3)}
+        .mercato-top{display:flex;justify-content:space-between;align-items:flex-start}
+        .mercato-joueur{display:flex;gap:12px}
+        .mercato-photo{width:55px;height:55px;border-radius:50%;object-fit:cover}
+        .mercato-nom{font-size:17px;font-weight:700}
+        .mercato-poste{display:inline-block;background:#333;padding:2px 8px;border-radius:8px;font-size:11px;margin-top:2px}
+        .mercato-prix{font-size:13px;color:#bdbdbd;margin-top:3px}
+        .mercato-date{font-size:12px;color:#999}
+        .mercato-clubs{margin-top:12px;background:#2b2b2b;border-radius:30px;padding:10px 15px;display:flex;justify-content:space-between;align-items:center}
+        .club{display:flex;align-items:center;gap:8px;font-size:14px}
+        .club img{width:26px;height:26px;border-radius:50%;object-fit:cover}
+        .arrow{font-size:18px;font-weight:bold}
+        .mercato-clubs{background:linear-gradient(90deg,#2e3640,#242424)}
+        .club img{border:2px solid rgba(255,255,255,.15)}
+        .mercato-card{cursor:pointer;}
+        .mercato-card:hover{transform:scale(1.02);transition:.2s;}
+        
+        .mercato-card:hover{transform:translateY(-2px);transition:.2s}
+
+        .historique-card{ cursor:pointer; }
+        .historique-card:hover{ transform:scale(1.03); }
+
+        .spot-label { font-size: 0.8rem; color: white; font-weight: bold; text-transform: uppercase; }
+        .spot-player-name { font-size: 0.7rem; color: var(--city-black); font-weight: bold; background: rgba(255,255,255,0.8); padding: 2px 4px; border-radius: 4px; width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; text-align: center; display: none; }
+        .spot-img-holder.has-player + .spot-player-name { display: block; }
+
+        .compo-squad-list { width: 100%; max-width: 600px; margin: 25px auto 0; text-align: left; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .compo-cat-titre { color: var(--city-sky-blue); font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin: 15px 0 8px; }
+        .compo-joueur-link { display: inline-block; padding: 6px 12px; margin: 3px; background: #eef6fc; color: var(--city-black); border-radius: 20px; font-size: 0.9rem; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .compo-joueur-link:hover { background: var(--city-sky-blue); color: white; }
+
+        .urgent-3mois { border-left: 6px solid red; }
+        .urgent-6mois { border-left: 6px solid orange; }
+
+        /* =========================MODE NUIT ========================= */
+        body.mode-nuit {--city-sky-blue: #4aa3d8;--city-black: #0b0f1a;--bg-color: #0a1220;--card-color: #121c2e;--text-color: #e6f1ff;background: var(--bg-color) !important;color: var(--text-color) !important;}
+        /* Fond global */
+        body.mode-nuit main,
+        body.mode-nuit .content-section {background: var(--bg-color) !important;color: var(--text-color) !important;}
+        /* CARTES (IMPORTANT : écrase tous les blancs) */
+        body.mode-nuit .centre-card,
+        body.mode-nuit .transfert-card,
+        body.mode-nuit .draft-player-card,
+        body.mode-nuit .draft-colonne,
+        body.mode-nuit #historique-enchere,
+        body.mode-nuit .player-stats-box,
+        body.mode-nuit .bio-container,
+        body.mode-nuit .match-card,
+        body.mode-nuit .compo-squad-list,
+        body.mode-nuit .stat-card,
+        body.mode-nuit .chat-container,
+        body.mode-nuit #chat-messages,
+        body.mode-nuit #quiz-view {background: var(--card-color) !important;color: var(--text-color) !important;}
+        /* FORCER suppression des blancs internes */
+        body.mode-nuit div,
+        body.mode-nuit section,
+        body.mode-nuit article {background-color: transparent;}
+        /* INPUTS */
+        body.mode-nuit input,
+        body.mode-nuit textarea {background: #0f1b2d !important;color: var(--text-color) !important;border: 1px solid #2b4a6a !important;}
+        /* NAV */
+        body.mode-nuit nav {background: #10243a !important;}
+        /* TABLES */
+        body.mode-nuit table,
+        body.mode-nuit th,
+        body.mode-nuit td {background: transparent !important;color: var(--text-color) !important;border-color: #223a52 !important;}
+        /* MENU */
+        body.mode-nuit #menu {background: #0b0f1a !important;}
+        /* TEXTES secondaires */
+        body.mode-nuit .cat-titre,
+        body.mode-nuit .match-header,
+        body.mode-nuit .transfert-date {color: #9bb4cc !important;}
+        /* Mot de passe */
+        body.mode-nuit #lock-screen .lock-box input::placeholder {color: #666 !important;}
+        /* Hover cartes (meilleur contraste) */
+        body.mode-nuit .centre-card:hover,
+        body.mode-nuit .stat-card:hover {background: #1a2a44 !important;}
+        .draft-colonne li {background: #eef6fc;padding: 8px;margin-bottom: 8px;border-radius: 8px;color: #0b1b2b;opacity: 1; /* IMPORTANT: pas de fade */}
+        /* joueur "désactivé" */
+        .draft-colonne li.disabled {color: #7f8fa6;background: #e6edf5;opacity: 0.75; /* léger, mais lisible */}
+
+        .anniversaire {display: flex;align-items: center;gap: 8px;margin: 4px 0;}
+        .point {width: 10px;height: 10px;border-radius: 50%;flex-shrink: 0;}
+        .point.hommes {background: #e53935;}
+        .point.centre {background: #000;}
+        .point.femmes {background: #2ecc71;}
+        .anniversaire.hommes { color: red; }
+        .anniversaire.femmes { color: green; }
+        .anniversaire.centre { color: black; }
+
+        #credits-view{padding:20px;}
+        .credit-box{max-width:700px;margin:auto;background:#1d1d1d;border-radius:15px;padding:20px;box-shadow:0 0 15px rgba(0,0,0,.3);}
+        .credit-box h2{color:#6CABDD;margin-top:20px;}
+        .credit-box p,
+        .credit-box li{color:white;line-height:1.6;}
+        
+        .player-search { position: absolute; right: 140px; /* place avant la version */ top: 50%; transform: translateY(-50%); width: 190px; z-index: 2000; }
+        .player-search input { width: 100%; box-sizing: border-box; padding: 8px 15px; border-radius: 20px; border: none; outline: none; font-weight: bold; }
+        .search-results { position: absolute; top: 45px; left: 0; width: 100%; background: white; color: black; border-radius: 10px; display: none; max-height: 250px; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,.3); z-index: 2000; }
+        .search-results div { padding: 10px; cursor: pointer; }
+        .search-results div:hover { background: #6CABDD; color: white; }
+
+        /* Styles Quiz */
+        #quiz-view { background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .quiz-box { margin-top: 20px; padding: 20px; border: 3px solid var(--city-sky-blue); border-radius: 15px; }
+        .quiz-clues { font-size: 1.4rem; margin-bottom: 20px; line-height: 2.2; text-align: left; background: #f9f9f9; padding: 20px; border-radius: 10px; }
+        .quiz-feedback { font-size: 1.6rem; font-weight: 800; margin-top: 20px; min-height: 40px; }
+        .quiz-img { max-width: 220px; border-radius: 15px; margin: 15px auto; display: none; border: 5px solid var(--city-sky-blue); }
+        .quiz-input-area { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
+        .quiz-input-area input { padding: 12px; border-radius: 10px; border: 2px solid #ccc; width: 60%; font-size: 1rem; }
+        .quiz-input-area button { background: var(--city-black); color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    
+    <div id="lock-screen">
+        <div class="lock-box">
+            <h2 style="margin-top:0;">🩵 Accès Réservé 🩵</h2>
+            <p>Ce site n'est plus à jour 🚨</p>
+            <p>Mot de passe :</p>
+            <input type="password" id="site-password" placeholder="Mot de passe">
+            <button onclick="checkPassword()">VALIDER</button>
+            <div id="lock-error"></div>
+        </div>
+    </div>
+
+    <nav>
+    <button id="btn-menu"
+            style="font-size:35px;background:none;border:none;color:white;cursor:pointer;"
+            onclick="toggleMenu(event)">
+        ☰
+    </button>
+
+    <h1 class="nav-title" onclick="showSection('accueil')">
+        🩵 CITY FANS
+    </h1>
+
+    <div class="player-search">
+
+        <input
+        type="text"
+        id="search-player"
+        placeholder="🔎 Hommes seulement"
+        onkeyup="searchPlayer()">
+
+        <div id="search-results" class="search-results"></div>
+
+    </div>
+
+    <span class="version-tag">v 1.05.00</span>
+</nav>
+
+    <div id="menu">
+        <ul>
+            <li class="menu-item" onclick="showSection('accueil')"><span class="menu-item-icon">🏠</span>Accueil</li>
+            <li class="menu-item" onclick="showSection('matchs-view')"><span class="menu-item-icon">📅</span>Matchs</li>
+            <li class="menu-item" onclick="ouvrirEffectif()"><span class="menu-item-icon">⚽</span>Effectif</li>
+            <li class="menu-item" onclick="toggleSubMenu('sub-mercato')"><span class="menu-item-icon">🔄</span>Mercato ▾</li>
+            <div id="sub-mercato" class="sous-menu"><span class="joueur-link" onclick="showSection('mercato-recap')">📦 Dernier Mercato</span>
+            </div>
+            <li class="menu-item" onclick="showSection('classement')"><span class="menu-item-icon">📊</span>Classement</li>
+            <li class="menu-item" onclick="showSection('joueursinter-recap')"><span class="menu-item-icon">🏁</span>Joueurs Inter</li>
+            <li class="menu-item" onclick="preparerCompoInteractive()"><span class="menu-item-icon">📋</span>Ma Compo</li>
+            <li class="menu-item" onclick="ouvrirDossierContrats()"><span class="menu-item-icon">📄</span>Contrats</li>
+            <li class="menu-item" onclick="demarrerQuiz()"><span class="menu-item-icon">🔍</span>Quiz</li>
+            <li class="menu-item" onclick="ouvrirDraft()"><span class="menu-item-icon">🎯</span>Jeu Draft</li>
+            <li class="menu-item" onclick="ouvrirCredits()"><span class="menu-item-icon">📜</span>Crédits</li>
+            
+        </ul>
+    </div>
+    <div id="quiz-view" class="content-section">
+        <h2>🔍 QUIZ : QUI EST-CE ?
+        ⚠️ Attention, les fautes ne sont pas supportées par le site</h2>
+        <div class="quiz-box">
+            <div id="quiz-clues" class="quiz-clues"></div>
+            <div class="quiz-input-area">
+                <input type="text" id="quiz-answer" placeholder="Nom du joueur...">
+                <button onclick="verifierReponseQuiz()">Valider</button>
+            </div>
+            <div id="quiz-feedback" class="quiz-feedback"></div>
+            <img id="quiz-img-result" class="quiz-img" src="">
+            <button onclick="demarrerQuiz()" style="margin-top:20px;">Suivant ➔</button>
+        </div>
+    </div>
+
+    <main>
+        <div id="accueil" class="content-section active">
+            <img src="static/images/mancity.jpg" class="logo-accueil">
+            <div class="match-card">
+                <h3>📰 Dernière Actualité</h3>
+                <p><strong>📑 Fin du mercato !</strong></p>
+            </div>
+
+    <div class="match-card">
+        <h3>⚽ Meilleur Buteur</h3>
+        <p>Erling Haaland (3)</p>
+    </div>
+
+    <div class="match-card">
+        <h3>👟 Meilleur Passeur</h3>
+        <p>Antoine Semenyo (6)</p>
+    </div>
+
+    <div class="match-card">
+        <h3>🎂 Anniversaires</h3>
+        <div id="anniversaires"></div>
+    </div>
+            
+</div>
+
+<div class="live-match">
+
+    <div id="competition"></div>
+
+    <div>
+        <span id="equipe1"></span>
+        <strong id="score"></strong>
+        <span id="equipe2"></span>
+    </div>
+
+    <div id="minute"></div>
+
+    <div id="statut"></div>
+
+</div>
+
+<div id="effectif-hommes" class="content-section">
+    <h2>👔 EFFECTIF HOMMES</h2>
+    <div id="effectif-container"></div>
+</div>
+<div id="effectif-femmes" class="content-section">
+    <h2>👔 EFFECTIF FEMMES</h2>
+    <div id="effectif-femmes-container"></div>
+</div>
+<div id="centre-formation-view" class="content-section">
+    <h2 id="centre-title">EFFECTIF JEUNES</h2>
+    <div id="centre-container"></div>
+</div>
+<div id="effectif-pret" class="content-section">
+    <h2>🔄 EFFECTIF PRÊT</h2>
+    <div id="effectif-pret-container"></div>
+</div>
+
+<div id="credits-view" class="content-section">
+
+    <h2>📜 Crédits</h2>
+
+    <div class="match-card">
+        <h3>INFO 🚨</h3>
+        <p>Ce site n'est plus à jour.</p>
+    </div>
+
+    <div class="match-card">
+        <h3>👨‍💻 Développeur</h3>
+        <p>Marmoush7-art</p>
+    </div>
+
+    <div class="match-card">
+        <h3>⚽ À propos</h3>
+        <p>Site non officiel consacré à Manchester City. Créé avec HTML, CSS et JavaScript.</p>
+    </div>
+
+</div>
+
+<div id="draft-view" class="content-section" style="display:none;">
+
+    <h2>🎯 Draft Challenge</h2>
+    <div class="draft-budget-box">
+        <div>
+            <h3>👤 Toi</h3>
+            <span id="budget-joueur">250</span> M€
+        </div>
+        <div>
+            <h3>🤖 Bot</h3>
+            <span id="budget-bot">250</span> M€
+        </div>
+    </div>
+    <div id="draft-carte"></div>
+    <div class="draft-actions">
+        <input
+            type="number"
+            id="montant-enchere"
+            placeholder="Votre enchère">
+        <button
+            id="btn-encherir"
+            onclick="faireEnchere()">
+            💰 Miser
+        </button>
+        <button
+            id="btn-abandonner"
+            onclick="abandonnerEnchere()">
+            ❌ Abandonner
+        </button>
+        <button
+            id="btn-sauter"
+            onclick="utiliserBonusSaut()">
+            🗑️ Sauter
+        </button>
+        <button
+            id="btn-budget"
+            onclick="utiliserBonusBudget()">
+            💸 +20 M€
+        </button>
+        <button
+            id="btn-reduction"
+            onclick="activerReduction()">
+            🎯 -50%
+        </button>
+        <button id="btn-bonus-special" onclick="utiliserBonusSpecial()" style="display:none;">
+            🎁 Bonus spécial
+        </button>
+    </div>
+    <div id="historique-enchere"></div>
+    <div class="draft-equipes">
+        <div class="draft-colonne">
+            <h3>Ton Trio</h3>
+            <ul id="liste-joueur-draft">
+            </ul>
+        </div>
+        <div class="draft-colonne">
+            <h3>Trio du Bot</h3>
+            <ul id="liste-bot-draft">
+            </ul>
+        </div>
+    </div>
+    <div
+    id="zone-restart"
+    style="display:none;text-align:center;margin-top:20px;">
+    <button onclick="recommencerDraft()">
+        🔄 Rejouer
+    </button>
+</div>
+<div id="draft-resultat"></div>
+</div>
+
+        <div id="matchs-view" class="content-section">
+            <h2>RESULTATS</h2>
+
+            <div class="match-card" style="border-left-color: #FFA500;">
+                <div class="match-header">Match Amical<br>📅 1er août 2026</div>
+                <div class="match-main">
+                    <div class="team"><img src="static/images/mancity.jpg"><p>Man City</p></div>
+                    <div class="score-center">1 - 1</div>
+                    <div class="team"><img src="static/images/intermilan.jpg"><p>Inter Milan</p></div>
+                </div>
+        <div class="match-details">
+            <div class="side-details">
+                <h4>Manchester City</h4>
+                <div class="stat-line">⚽ <strong>Divin Mubama (14')</strong></div>
+                <div class="stat-line">👟 Antoine Semenyo</div>
+            </div>
+            <div class="side-details">
+                <h4>Inter Milan</h4>
+                <div class="stat-line">⚽ <strong>Benjamin Pavard (20')</strong></div>
+            </div>
+        </div>
+    </div>
+
+            <div class="match-card" style="border-left-color: #FFA500;">
+                <div class="match-header">Match Amical<br>📅 5 août 2026</div>
+                <div class="match-main">
+                    <div class="team"><img src="static/images/mancity.jpg"><p>Man City</p></div>
+                    <div class="score-center">3 - 1</div>
+                    <div class="team"><img src="static/images/kleagueallstars.jpg"><p>K-League All Stars</p></div>
+                </div>
+        <div class="match-details">
+            <div class="side-details">
+                <h4>Manchester City</h4>
+                <div class="stat-line">⚽ <strong>Rayan Ait-Nouri (9')</strong></div>
+                <div class="stat-line">👟 Tijjani Reijnders</div>
+                <div class="stat-line">⚽ <strong>Tijjani Reijnders (20')</strong></div>
+                <div class="stat-line">👟 Phil Foden</div>
+                <div class="stat-line">⚽ <strong>Divin Mubama (23')</strong></div>
+                <div class="stat-line">👟 Antoine Semenyo</div>
+            </div>
+            <div class="side-details">
+                <h4>K-League All Stars</h4>
+                <div class="stat-line">⚽ <strong>Kim Dae Won (14')</strong></div>
+                <div class="stat-line">👟 Lee Dong-Gyeong</div>
+            </div>
+        </div>
+    </div>
+
+            <div class="match-card" style="border-left-color: #FFA500;">
+                <div class="match-header">Match Amical<br>📅 9 août 2026</div>
+                <div class="match-main">
+                    <div class="team"><img src="static/images/mancity.jpg"><p>Man City</p></div>
+                    <div class="score-center">3 - 1</div>
+                    <div class="team"><img src="static/images/atletico.jpg"><p>Atlético Madrid</p></div>
+                </div>
+        <div class="match-details">
+            <div class="side-details">
+                <h4>Manchester City</h4>
+                <div class="stat-line">⚽ <strong>Omar Marmoush (57')</strong></div>
+                <div class="stat-line">👟 Antoine Semenyo</div>
+                <div class="stat-line">⚽ <strong>Omar Marmoush (59')</strong></div>
+                <div class="stat-line">👟 Antoine Semenyo</div>
+                <div class="stat-line">⚽ <strong>Rayan Ait-Nouri (90')</strong></div>
+                <div class="stat-line">👟 Divin Mubama</div>
+            </div>
+            <div class="side-details">
+                <h4>Atlético de Madrid</h4>
+                <div class="stat-line">⚽ <strong>Jorge Dominguez (43')</strong></div>
+                <div class="stat-line">👟 Morten Hjulmand</div>
+            </div>
+        </div>
+    </div>
+
+            <div class="match-card" style="border-left-color: #008000;">
+                <div class="match-header">Community Shield : Finale 🏆<br>📅 16 août 2026</div>
+                <div class="match-main">
+                    <div class="team"><img src="static/images/mancity.jpg"><p>Man City</p></div>
+                    <div class="score-center">0 - 3</div>
+                    <div class="team"><img src="static/images/arsenal.jpg"><p>Arsenal</p></div>
+                </div>
+        <div class="match-details">
+            <div class="side-details">
+                <h4>Manchester City</h4>
+            </div>
+            <div class="side-details">
+                <h4>Arsenal</h4>
+                <div class="stat-line">⚽ <strong>Riccardo Calafiori (1')</strong></div>
+                <div class="stat-line">👟 Myles Lewis-Skiley</div>
+                <div class="stat-line">⚽ <strong>Kai Havertz (28')</strong></div>
+                <div class="stat-line">👟 Christos Tzolis</div>
+                <div class="stat-line">⚽ <strong>Martin Odegaard (48')</strong></div>
+                <div class="stat-line">👟 Christos Tzolis</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="match-card" style="border-left-color: #4aa3d8;">
+                <div class="match-header">Premier League<br>📅 23 août 2026</div>
+                <div class="match-main">
+                    <div class="team"><img src="static/images/mancity.jpg"><p>Man City</p></div>
+                    <div class="score-center">2 - 1</div>
+                    <div class="team"><img src="static/images/bournemouth.jpg"><p>AFC Bournemouth</p></div>
+                </div>
+        <div class="match-details">
+            <div class="side-details">
+                <h4>Manchester City</h4>
+                <div class="stat-line">⚽ <strong>Marc Guéhi (84')</strong></div>
+                <div class="stat-line">👟 Rayan Cherki</div>
+                <div class="stat-line">⚽ <strong>Josko Gvardiol (90+1')</strong></div>
+                <div class="stat-line">👟 Rayan Cherki</div>
+            </div>
+            <div class="side-details">
+                <h4>AFC Bournemouth</h4>
+                <div class="stat-line">⚽ <strong>Marcus Tavernier (26')</strong></div>
+                <div class="stat-line">👟 Evanilson</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="match-card" style="border-left-color: #4aa3d8;">
+                <div class="match-header">Premier League<br>📅 28 août 2026</div>
+                <div class="match-main">
+                    <div class="team"><img src="static/images/mancity.jpg"><p>Man City</p></div>
+                    <div class="score-center">4 - 1</div>
+                    <div class="team"><img src="static/images/crystalpalace.jpg"><p>Crystal Palace</p></div>
+                </div>
+        <div class="match-details">
+            <div class="side-details">
+                <h4>Manchester City</h4>
+                <div class="stat-line">⚽ <strong>Erling Haaland (17')</strong></div>
+                <div class="stat-line">👟 Antoine Semenyo</div>
+                <div class="stat-line">⚽ <strong>Rayan Cherki (54')</strong></div>
+                <div class="stat-line">👟 Phil Foden</div>
+                <div class="stat-line">⚽ <strong>Rayan Cherki (59')</strong></div>
+                <div class="stat-line">👟 Josko Gvardiol</div>
+                <div class="stat-line">⚽ <strong>Erling Haaland (84')</strong></div>
+                <div class="stat-line">👟 Phil Foden</div>
+            </div>
+            <div class="side-details">
+                <h4>Crystal Palace</h4>
+                <div class="stat-line">⚽ <strong>Gianluigi Donnarumma (CSC) (56')</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="match-card" style="border-left-color: #4aa3d8;">
+                <div class="match-header">Premier League<br>📅 5 septembre 2026</div>
+                <div class="match-main">
+                    <div class="team"><img src="static/images/mancity.jpg"><p>Man City</p></div>
+                    <div class="score-center">1 - 0</div>
+                    <div class="team"><img src="static/images/coventry.jpg"><p>Coventry City</p></div>
+                </div>
+        <div class="match-details">
+            <div class="side-details">
+                <h4>Manchester City</h4>
+                <div class="stat-line">⚽ <strong>Erling Haaland (26')</strong></div>
+                <div class="stat-line">👟 Antoine Semenyo</div>
+            </div>
+            <div class="side-details">
+                <h4>Coventry City</h4>
+            </div>
+        </div>
+    </div>
+
+    <h2>⚠️ Attention, ce site n'est plus mis à jour.</h2>
+        
+    </div>
+</div>   
+
+        <div id="contrats-view" class="content-section">
+            <h2>📄 Dossiers contrats</h2>
+            <div id="contrats-container"></div>
+        </div>
+
+<div id="effectif-menu" class="content-section">
+
+<h2>⚽ EFFECTIF</h2>
+<div class="centre-card" onclick="afficherEffectifHommes()">
+<img src="static/images/mancity.jpg">
+<div class="centre-info">
+<h3>👔 Effectif Hommes</h3>
+<p>Equipe première masculine</p>
+</div>
+</div>
+
+<div class="centre-card" onclick="afficherEffectifFemmes()">
+<img src="static/images/mancity.jpg">
+<div class="centre-info">
+<h3>👔 Effectif Femmes</h3>
+<p>Equipe première féminine</p>
+</div>
+</div>
+
+<div class="centre-card" onclick="ouvrirCentreGeneral()">
+<img src="static/images/centreform.jpg">
+<div class="centre-info">
+<h3>🧬 Centre Formation</h3>
+<p>Jeunes joueurs</p>
+</div>
+</div>
+
+<div class="centre-card" onclick="afficherEffectifPret()">
+<img src="static/images/mancity.jpg">
+<div class="centre-info">
+<h3>🔄 Effectif Prêt</h3>
+<p>Joueurs prêtés cette saison</p>
+</div>
+</div>
+</div>
+
+        <div id="joueur-solo" class="content-section">
+            <h2 id="nom-joueur"></h2>
+            <img id="photo" src="" style="width:200px; border-radius:15px;">
+            <div class="box-info">
+                <table>
+                    <tr><th>Âge</th><td id="s-age"></td></tr>
+                    <tr><th>Nationalité</th><td id="s-nat"></td></tr>
+                    <tr><th>Numéro</th><td id="s-numero"></td></tr>
+                    <tr><th>Salaire / mois</th><td id="s-paye"></td></tr>
+                    <tr><th>Fin de contrat</th><td id="s-fin"></td></tr>
+                    <tr><th>Valeur</th><td id="s-valeur"></td></tr>
+                    <tr><th>Note EA Sports</th><td id="s-noteea"></td></tr>
+                </table>
+                <div class="bio-container">
+                    <strong>Biographie :</strong><br><br>
+                    <span id="s-bio"></span>
+                    <div class="stat-card"><span class="stat-number" id="s-matchs">0</span><span class="stat-label">🎮 Matchs</span></div>
+                    <div class="stat-card"><span class="stat-number" id="s-buts">0</span><span class="stat-label">⚽ Buts</span></div>
+                    <div class="stat-card"><span class="stat-number" id="s-passes">0</span><span class="stat-label">👟 Passes D.</span></div>
+                </div>
+            </div>
+        </div>
+
+  
+        <div id="ma-compo-view" class="content-section">
+            <h2>Ma Compo 📋</h2>
+            <p style="font-size: 0.9rem; margin-bottom: 15px; color: #666;">Configuration 4-2-3-1</p>
+            
+<div class="compo-field">
+
+    <!-- Ligne défense -->
+    <div class="player-spot" id="spot-def-dd" style="top: 80%; left: 80%;" onclick="selectSpot(this)">
+        <div class="spot-img-holder"><img><span class="spot-label">DD</span></div>
+        <div class="spot-player-name"></div>
+    </div>
+
+    <div class="player-spot" id="spot-def-dc1" style="top: 78%; left: 60%;" onclick="selectSpot(this)">
+        <div class="spot-img-holder"><img><span class="spot-label">DC</span></div>
+        <div class="spot-player-name"></div>
+    </div>
+
+    <div class="player-spot" id="spot-def-dc2" style="top: 78%; left: 40%;" onclick="selectSpot(this)">
+        <div class="spot-img-holder"><img><span class="spot-label">DC</span></div>
+        <div class="spot-player-name"></div>
+    </div>
+
+    <div class="player-spot" id="spot-def-dg" style="top: 80%; left: 20%;" onclick="selectSpot(this)">
+        <div class="spot-img-holder"><img><span class="spot-label">DG</span></div>
+        <div class="spot-player-name"></div>
+    </div>
+
+    <!-- 2 milieux défensifs -->
+    <div class="player-spot" id="spot-mil-mc1" style="top: 60%; left: 40%;" onclick="selectSpot(this)">
+        <div class="spot-img-holder"><img><span class="spot-label">MDC</span></div>
+        <div class="spot-player-name"></div>
+    </div>
+
+    <div class="player-spot" id="spot-mil-mc2" style="top: 60%; left: 60%;" onclick="selectSpot(this)">
+        <div class="spot-img-holder"><img><span class="spot-label">MDC</span></div>
+        <div class="spot-player-name"></div>
+    </div>
+
+    <!-- 3 offensifs -->
+    <div class="player-spot" id="spot-att-ag"style="top: 28%; left: 20%;"onclick="selectSpot(this)">
+        <div class="spot-img-holder"><img><span class="spot-label">AG</span></div>
+        <div class="spot-player-name"></div>
+    </div>
+
+    <div class="player-spot" id="spot-mil-moc" style="top: 35%; left: 50%;" onclick="selectSpot(this)">
+        <div class="spot-img-holder"><img><span class="spot-label">MOC</span></div>
+        <div class="spot-player-name"></div>
+    </div>
+
+    <div class="player-spot" id="spot-att-ad"style="top: 28%; left: 80%;"onclick="selectSpot(this)">
+        <div class="spot-img-holder"><img><span class="spot-label">AD</span></div>
+        <div class="spot-player-name"></div>
+    </div>
+
+    <!-- BU -->
+    <div class="player-spot" id="spot-att-bu" style="top: 15%; left: 50%;" onclick="selectSpot(this)">
+        <div class="spot-img-holder"><img><span class="spot-label">BU</span></div>
+        <div class="spot-player-name"></div>
+    </div>
+
+    <!-- Gardien -->
+    <div class="player-spot" id="spot-gk-1" style="top: 90%; left: 50%;" onclick="selectSpot(this)">
+        <div class="spot-img-holder"><img><span class="spot-label">G</span></div>
+        <div class="spot-player-name"></div>
+    </div>
+
+</div>
+
+            <div class="compo-squad-list">
+                <h3>Choisir un joueur ⚽</h3>
+                <div id="liste-joueurs-compo"></div>
+            </div>
+        </div>
+
+        <div id="centre-formation-view" class="content-section">
+            <h2 id="centre-title">🧬 Centre de formation</h2>
+            <div id="centre-container"></div>
+        </div>
+
+        <div id="mercato-recap" class="content-section">
+            <h2>Historique du Mercato (Été 2026)</h2>
+
+            <div class="mercato-card" onclick="afficher('sangaré')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/mahamadou-sangare.jpg" class="mercato-photo"><div><div class="mercato-nom">Mahamadou Sangaré</div><div class="mercato-poste">BU</div><div class="mercato-prix">2M €</div></div></div><div class="mercato-date">7 Septembre</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/al-qadsiah.jpg">Al Qadsiah</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('echeverri')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/claudio-echeverri.jpg" class="mercato-photo"><div><div class="mercato-nom">Claudio Echeverri</div><div class="mercato-poste">MOC</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">3 Septembre</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/benfica.jpg">Benfica</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('heskey')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/jaden-heskey.jpg" class="mercato-photo"><div><div class="mercato-nom">Jaden Heskey</div><div class="mercato-poste">MDC</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">3 Septembre</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/sheffieldwednesday.jpg">Sheffield Wednesday</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('monga')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/jeremy-monga.jpg" class="mercato-photo"><div><div class="mercato-nom">Jeremy Monga</div><div class="mercato-poste">AG</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">2 Septembre</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/swansea.jpg">Swansea City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('fernandez')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/enzo-fernandez.jpg" class="mercato-photo"><div><div class="mercato-nom">Enzo Fernandez</div><div class="mercato-poste">MC</div><div class="mercato-prix">145M €</div></div></div><div class="mercato-date">2 Septembre</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/chelsea.jpg">Chelsea</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('grealish')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/jack-grealish.jpg" class="mercato-photo"><div><div class="mercato-nom">Jack Grealish</div><div class="mercato-poste">AG</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">2 Septembre</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/everton.jpg">Everton</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('ndiaye')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/iliman-ndiaye.jpg" class="mercato-photo"><div><div class="mercato-nom">Iliman Ndiaye</div><div class="mercato-poste">AD</div><div class="mercato-prix">70M €</div></div></div><div class="mercato-date">2 Septembre</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/everton.jpg">Everton</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('juma-bah')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/abdulai-juma-bah.jpg" class="mercato-photo"><div><div class="mercato-nom">Abdulai Juma Bah</div><div class="mercato-poste">DC</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">1 Septembre</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/ausbourg.jpg">Ausbourg</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('allan')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/allan2.jpg" class="mercato-photo"><div><div class="mercato-nom">Allan</div><div class="mercato-poste">AD</div><div class="mercato-prix">37.5M €</div></div></div><div class="mercato-date">31 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/palmeiras.jpg">Palmeiras</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('mfuni')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/stephen-mfuni.jpg" class="mercato-photo"><div><div class="mercato-nom">Stephen Mfuni</div><div class="mercato-poste">DG</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">30 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/coventry.jpg">Coventry City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('marmoush')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/omar-marmoush.jpg" class="mercato-photo"><div><div class="mercato-nom">Omar Marmoush</div><div class="mercato-poste">BU</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">27 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/tottenham.jpg">Tottenham</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('kaboré')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/issa-kabore.jpg" class="mercato-photo"><div><div class="mercato-nom">Issa Kaboré</div><div class="mercato-poste">DD</div><div class="mercato-prix">2.4M €</div></div></div><div class="mercato-date">27 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/wrexham.jpg">Wrexham</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('gonzalez')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/nico-gonzalez.jpg" class="mercato-photo"><div><div class="mercato-nom">Nico Gonzalez</div><div class="mercato-poste">MDC</div><div class="mercato-prix">56M €</div></div></div><div class="mercato-date">23 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/newcastle.jpg">Newcastle</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('bouaddi')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/ayyoub-bouaddi.jpg" class="mercato-photo"><div><div class="mercato-nom">Ayyoub Bouaddi</div><div class="mercato-poste">>MDC</div><div class="mercato-prix">95M €</div></div></div><div class="mercato-date">26 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/lille.jpg">LOSC Lille</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('mcaidoo')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/ryan-mcaidoo.jpg" class="mercato-photo"><div><div class="mercato-nom">Ryan McAidoo</div><div class="mercato-poste">AD</div><div class="mercato-prix">Transfert Gratuit</div></div></div><div class="mercato-date">25 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City U21</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('braithwaite')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/kaden-braithwaite.jpg" class="mercato-photo"><div><div class="mercato-nom">Kaden Braithwaite</div><div class="mercato-poste">DC</div><div class="mercato-prix">Transfert Gratuit</div></div></div><div class="mercato-date">25 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City U21</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('samba')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/floyd-samba.jpg" class="mercato-photo"><div><div class="mercato-nom">Floyd Samba</div><div class="mercato-poste">MC</div><div class="mercato-prix">Transfert Gratuit</div></div></div><div class="mercato-date">25 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City U21</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('savinho')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/savinho2.jpg" class="mercato-photo"><div><div class="mercato-nom">Savinho</div><div class="mercato-poste">AG</div><div class="mercato-prix">67.7M €</div></div></div><div class="mercato-date">25 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/tottenham.jpg">Tottenham</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('reijnders')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/tijjani-reijnders.jpg" class="mercato-photo"><div><div class="mercato-nom">Tijjani Reijnders</div><div class="mercato-poste">MC</div><div class="mercato-prix">61M €</div></div></div><div class="mercato-date">19 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/al-qadsiah.jpg">Al Qadsiah</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('mukasa')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/divine-mukasa.jpg" class="mercato-photo"><div><div class="mercato-nom">Divine Mukasa</div><div class="mercato-poste">MOC</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">21 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/westham.jpg">West Ham</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('gray')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/charlie-gray.jpg" class="mercato-photo"><div><div class="mercato-nom">Charlie Gray</div><div class="mercato-poste">MC</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">20 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/wigan.jpg">Wigan</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('reijnders')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/tijjani-reijnders.jpg" class="mercato-photo"><div><div class="mercato-nom">Tijjani Reijnders</div><div class="mercato-poste">MC</div><div class="mercato-prix">61M €</div></div></div><div class="mercato-date">19 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/al-qadsiah.jpg">Al Qadsiah</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('rodri')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/rodri2.jpg" class="mercato-photo"><div><div class="mercato-nom">Rodri</div><div class="mercato-poste">MDC</div><div class="mercato-prix">60M €</div></div></div><div class="mercato-date">18 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/barca.jpg">FC Barcelone</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('samuel')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/lakyle-samuel.jpg" class="mercato-photo"><div><div class="mercato-nom">Lakyle Samuel</div><div class="mercato-poste">DD</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">14 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/exeter.jpg">Exeter City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('alleyne')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/max-alleyne.jpg" class="mercato-photo"><div><div class="mercato-nom">Max Alleyne</div><div class="mercato-poste">DC</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">14 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/burnley.jpg">Burnley</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('burns')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/finley-burns.jpg" class="mercato-photo"><div><div class="mercato-nom">Finley Burns</div><div class="mercato-poste">DC</div><div class="mercato-prix">Inconnu</div></div></div><div class="mercato-date">14 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/wigan.jpg">Wigan</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('lawrence')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/emilio-lawrence.jpg" class="mercato-photo"><div><div class="mercato-nom">Emilio Lawrence</div><div class="mercato-poste">AG</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">14 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/luton.jpg">Luton</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('doku')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/jeremy-doku.jpg" class="mercato-photo"><div><div class="mercato-nom">Jérémy Doku</div><div class="mercato-poste">AG</div><div class="mercato-prix">Renouvellement de contrat</div></div></div><div class="mercato-date">13 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('rulli')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/geronimo-rulli.jpg" class="mercato-photo"><div><div class="mercato-nom">Geronimo Rulli</div><div class="mercato-poste">G</div><div class="mercato-prix">3.5M €</div></div></div><div class="mercato-date">12 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/marseille.jpg">Marseille</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('phillips')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/kalvin-phillips.jpg" class="mercato-photo"><div><div class="mercato-nom">Kalvin Phillips</div><div class="mercato-poste">MDC</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">11 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/sheffieldutd.jpg">Sheffield Utd</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('mubama')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/divin-mubama.jpg" class="mercato-photo"><div><div class="mercato-nom">Divin Mubama</div><div class="mercato-poste">BU</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">11 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/southampton.jpg">Southampton</div></div>
+            </div>
+            
+            <div class="mercato-card" onclick="afficher('trafford')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/james-trafford.jpg" class="mercato-photo"><div><div class="mercato-nom">James Trafford</div><div class="mercato-poste">G</div><div class="mercato-prix">46M €</div></div></div><div class="mercato-date">6 Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/leeds.jpg">Leeds</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('dada-mascoll')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/isaiah-dada-mascoll.jpg" class="mercato-photo"><div><div class="mercato-nom">Isaiah Dada-Mascoll</div><div class="mercato-poste">MC</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">1er Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/lommel.jpg">Lommel</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('wint')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/jack-wint.jpg" class="mercato-photo"><div><div class="mercato-nom">Jack Wint</div><div class="mercato-poste">G</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">1er Août</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/kidderminster.jpg">Kiderminster</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('mcfarlane')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/christian-mcfarlane.jpg" class="mercato-photo"><div><div class="mercato-nom">Christian McFarlane</div><div class="mercato-poste">DC</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">29 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/leicester.jpg">Leicester</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('ndala')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/joel-ndala.jpg" class="mercato-photo"><div><div class="mercato-nom">Joel Ndala</div><div class="mercato-poste">AG</div><div class="mercato-prix">850K €</div></div></div><div class="mercato-date">29 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/cerclebrugges.jpg">Cercle Brugges</div></div>
+            </div>
+            
+            <div class="mercato-card" onclick="afficher('gvardiol')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/josko-gvardiol.jpg" class="mercato-photo"><div><div class="mercato-nom">Josko Gvardiol</div><div class="mercato-poste">DC</div><div class="mercato-prix">Renouvellement de contrat</div></div></div><div class="mercato-date">28 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('khusanov')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/abdukodir-khusanov.jpg" class="mercato-photo"><div><div class="mercato-nom">Abdukodir Khusanov</div><div class="mercato-poste">DC</div><div class="mercato-prix">Renouvellement de contrat</div></div></div><div class="mercato-date">25 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('foden')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/phil-foden.jpg" class="mercato-photo"><div><div class="mercato-nom">Phil Foden</div><div class="mercato-poste">MOC</div><div class="mercato-prix">Renouvellement de contrat</div></div></div><div class="mercato-date">22 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('warhurst')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/matty-warhurst.jpg" class="mercato-photo"><div><div class="mercato-nom">Matty Warhurst</div><div class="mercato-poste">BU</div><div class="mercato-prix">Inconnu</div></div></div><div class="mercato-date">21 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/northampton.jpg">Northampton</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('brits')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/spike-brits.jpg" class="mercato-photo"><div><div class="mercato-nom">Spike Brits</div><div class="mercato-poste">G</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">21 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/sutton-united.jpg">Sutton Utd</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('heskey')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/reighan-heskey.jpg" class="mercato-photo"><div><div class="mercato-nom">Reighan Heskey</div><div class="mercato-poste">AG</div><div class="mercato-prix">2 M€</div></div></div><div class="mercato-date">18 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/koln.jpg">FC Köln</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('monga')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/jeremy-monga.jpg" class="mercato-photo"><div><div class="mercato-nom">Jérémy Monga</div><div class="mercato-poste">AG</div><div class="mercato-prix">11.7 M€</div></div></div><div class="mercato-date">11 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/leicester.jpg">Leicester</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('nypan')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/sverre-nypan.jpg" class="mercato-photo"><div><div class="mercato-nom">Sverre Nypan</div><div class="mercato-poste">MOC</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">11 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/lommel.jpg">Lommel</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('charles')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/pierce-charles.jpg" class="mercato-photo"><div><div class="mercato-nom">Pierce Charles</div><div class="mercato-poste">G</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">10 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/qpr.jpg">QPR</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('charles')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/pierce-charles.jpg" class="mercato-photo"><div><div class="mercato-nom">Pierce Charles</div><div class="mercato-poste">G</div><div class="mercato-prix">3.5 M€</div></div></div><div class="mercato-date">10 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/sheffieldwednesday.jpg">Sheffield</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('galvez')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/tomas-galvez.jpg" class="mercato-photo"><div><div class="mercato-nom">Tomas Galvez</div><div class="mercato-poste">DG</div><div class="mercato-prix">500K €</div></div></div><div class="mercato-date">8 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/eagles.jpg">Go Ahead Eagles</div></div>
+            </div>
+            
+            <div class="mercato-card" onclick="afficher('ake')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/nathan-ake.jpg" class="mercato-photo"><div><div class="mercato-nom">Nathan Aké</div><div class="mercato-poste">DC</div><div class="mercato-prix">8.17 M€</div></div></div><div class="mercato-date">3 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/fenerbahce.jpg">Fenerbahçe</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('detourbet')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/mathys-detourbet.jpg" class="mercato-photo"><div><div class="mercato-nom">Mathys Detourbet</div><div class="mercato-poste">AG</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">2 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/monaco.jpg">AS Monaco</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('anderson')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/elliot-anderson.jpg" class="mercato-photo"><div><div class="mercato-nom">Elliot Anderson</div><div class="mercato-poste">MC</div><div class="mercato-prix">135 M€</div></div></div><div class="mercato-date">2 Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/nottingham.jpg">Nottingham</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('whatmuff')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/oliver-whatmuff.jpg" class="mercato-photo"><div><div class="mercato-nom">Oliver Whatmuff</div><div class="mercato-poste">G</div><div class="mercato-prix">Prêt</div></div></div><div class="mercato-date">1er Juillet</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">🔄</div><div class="club"><img src="static/images/stockport.jpg">Stockport County</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('reis')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/vitor-reis.jpg" class="mercato-photo"><div><div class="mercato-nom">Vitor Reis</div><div class="mercato-poste">DC</div><div class="mercato-prix">Retour de prêt</div></div></div><div class="mercato-date">30 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/girona.jpg">Girona</div><div class="arrow">🔄</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('grealish')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/jack-grealish.jpg" class="mercato-photo"><div><div class="mercato-nom">Jack Grealish</div><div class="mercato-poste">AG</div><div class="mercato-prix">Retour de prêt</div></div></div><div class="mercato-date">30 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/everton.jpg">Everton</div><div class="arrow">🔄</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('echeverri')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/claudio-echeverri.jpg" class="mercato-photo"><div><div class="mercato-nom">Claudio Echeverri</div><div class="mercato-poste">MOC</div><div class="mercato-prix">Retour de prêt</div></div></div><div class="mercato-date">30 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/girona.jpg">Girona</div><div class="arrow">🔄</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('wilson-esbrand')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/joshua-wilson-esbrand.jpg" class="mercato-photo"><div><div class="mercato-nom">Joshua Wilson-Esbrand</div><div class="mercato-poste">DG</div><div class="mercato-prix">Retour de prêt</div></div></div><div class="mercato-date">30 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/radiomak.jpg">Radiomak</div><div class="arrow">🔄</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('phillips')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/kalvin-phillips.jpg" class="mercato-photo"><div><div class="mercato-nom">Kalvin Phillips</div><div class="mercato-poste">MDC</div><div class="mercato-prix">Retour de prêt</div></div></div><div class="mercato-date">30 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/sheffieldutd.jpg">Sheffield Utd</div><div class="arrow">🔄</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('bah')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/abdulai-juma-bah.jpg" class="mercato-photo"><div><div class="mercato-nom">Abdulai Juma Bah</div><div class="mercato-poste">DC</div><div class="mercato-prix">Retour de prêt</div></div></div><div class="mercato-date">30 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/nice.jpg">OGC Nice</div><div class="arrow">🔄</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('kabore')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/issa-kabore.jpg" class="mercato-photo"><div><div class="mercato-nom">Issa Kaboré</div><div class="mercato-poste">DD</div><div class="mercato-prix">Retour de prêt</div></div></div><div class="mercato-date">30 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/wrexham.jpg">Wrexham</div><div class="arrow">🔄</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('maresca')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/enzo-maresca.jpg" class="mercato-photo"><div><div class="mercato-nom">Enzo Maresca</div><div class="mercato-poste">ENT</div><div class="mercato-prix">20 M€</div></div></div><div class="mercato-date">29 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/chelsea.jpg">Chelsea</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+            
+            <div class="mercato-card" onclick="afficher('detourbet')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/mathys-detourbet.jpg" class="mercato-photo"><div><div class="mercato-nom">Mathys Detourbet</div><div class="mercato-poste">AG</div><div class="mercato-prix">25 M€</div></div></div><div class="mercato-date">27 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/troyes.jpg">ESTAC Troyes</div><div class="arrow">➜</div><div class="club"><img src="static/images/mancity.jpg">Man City</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('simpson-pusey')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/jahmai-simpson-pusey.jpg" class="mercato-photo"><div><div class="mercato-nom">Jahmai Simpson-Pusey</div><div class="mercato-poste">DC</div><div class="mercato-prix">6 M€</div></div></div><div class="mercato-date">12 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/koln.jpg">FC Köln</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('silva')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/bernardo-silva.jpg" class="mercato-photo"><div><div class="mercato-nom">Bernardo Silva</div><div class="mercato-poste">MC</div><div class="mercato-prix">Transfert Gratuit</div></div></div><div class="mercato-date">11 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/realmadrid.jpg">Real Madrid</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('stones')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/john-stones.jpg" class="mercato-photo"><div><div class="mercato-nom">John Stones</div><div class="mercato-poste">DC</div><div class="mercato-prix">Transfert Gratuit</div></div></div><div class="mercato-date">11 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/intermilan.jpg">Inter Milan</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('guardiola')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/pep-guardiola.jpg" class="mercato-photo"><div><div class="mercato-nom">Pep Guardiola</div><div class="mercato-poste">ENT</div><div class="mercato-prix">Transfert Gratuit</div></div></div><div class="mercato-date">11 Juin</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club">Retraite</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('dickson')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/will-dickson.jpg" class="mercato-photo"><div><div class="mercato-nom">Will Dickson</div><div class="mercato-poste">BU</div><div class="mercato-prix">100K €</div></div></div><div class="mercato-date">5 Mai</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/chesterfield.jpg">Chesterfield</div></div>
+            </div>
+
+            <div class="mercato-card" onclick="afficher('akanji')">
+            <div class="mercato-top"><div class="mercato-joueur"><img src="static/images/manuel-akanji.jpg" class="mercato-photo"><div><div class="mercato-nom">Manuel Akanji</div><div class="mercato-poste">DC</div><div class="mercato-prix">15 M€</div></div></div><div class="mercato-date">4 Mai</div></div>
+            <div class="mercato-clubs"><div class="club"><img src="static/images/mancity.jpg">Man City</div><div class="arrow">➜</div><div class="club"><img src="static/images/intermilan.jpg">Inter</div></div>
+            </div>
+            
+        </div>
+
+        <div id="joueursinter-recap" class="content-section">
+            <h2>Pas de matchs à l'international actuellement.</h2>
+        </div>
+
+        <div id="classement" class="content-section">
+            <h2>Classement</h2>
+            <div class="transfert-card"><img src="static/images/premierleague.jpg"><div class="transfert-info"><h3>Premier League</h3><p>Position : 1er</p><p>Points : 6</p><p>Matchs : 2</p><p>Victoires : 2</p><p>Nuls : 0</p><p>Défaites : 0</p><p class="transfert-date">IMPORTANT</p></div></div>
+            <div class="transfert-card"><img src="static/images/facup.jpg"><div class="transfert-info"><h3>FA Cup</h3><p>Position : 3ème Tour à venir</p><p>Points : 0</p><p>Matchs : 0</p><p>Victoires : 0</p><p>Nuls : 0</p><p>Défaites : 0</p><p class="transfert-date">SECONDAIRE</p></div></div>
+            <div class="transfert-card"><img src="static/images/carabaocup.jpg"><div class="transfert-info"><h3>League Cup</h3><p>Position : 3ème Tour à venir</p><p>Points : 0</p><p>Matchs : 0</p><p>Victoires : 0</p><p>Nuls : 0</p><p>Défaites : 0</p><p class="transfert-date">SECONDAIRE</p></div></div>
+            <div class="transfert-card"><img src="static/images/championsleague.jpg"><div class="transfert-info"><h3>Champions League</h3><p>Position : Poules à venit</p><p>Points : 0</p><p>Matchs : 0</p><p>Victoires : 0</p><p>Nuls : 0</p><p>Défaites : 0</p><p class="transfert-date">IMPORTANT</p></div></div>
+            <div class="transfert-card"><img src="static/images/communityshield.jpg"><div class="transfert-info"><h3>Community Shield</h3><p>Position : Défaite</p><p>Points : 0</p><p>Matchs : 1</p><p>Victoires : 0</p><p>Défaites : 1</p><p class="transfert-date">SECONDAIRE</p></div></div>
+
+        </div>
+
+        <div id="joueur-solo" class="content-section">
+            <h2 id="nom-joueur"></h2>
+            <img id="photo" src="">
+            <div class="box-info">
+                <table>
+                    <tr><th>Âge</th><td id="s-age"></td></tr>
+                    <tr><th>Nationalité</th><td id="s-nat"></td></tr>
+                    <tr><th>Numéro</th><td id="s-numero"></td></tr>
+                    <tr><th>Salaire / mois</th><td id="s-paye"></td></tr>
+                    <tr><th>Fin de contrat</th><td id="s-fin"></td></tr>
+                    <tr><th>Valeur</th><td id="s-valeur"></td></tr>
+                    <tr><th>Note EA Sports</th><td id="s-noteea"></td></tr>
+                </table>
+                <div class="bio-container">
+                    <strong>Biographie :</strong><br><br>
+                    <span id="s-bio"></span>
+
+                    <div class="stat-card">
+                        <span class="stat-number" id="s-matchs">0</span>
+                        <span class="stat-label">🎮 Matchs</span>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <span class="stat-number" id="s-buts">0</span>
+                        <span class="stat-label">⚽ Buts</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-number" id="s-passes">0</span>
+                        <span class="stat-label">👟 Passes D.</span>
+                    </div>
+                    
+                </div>
+            </div>
+
+        <div id="position-actuelle-view" class="content-section">
+            <div class="titre-zone">📊 Positions Actuelles</div>
+            <div id="positions-container" class="centre-container">
+            <!-- Les cartes des compétitions vont se générer ici -->
+            </div>
+        </div>
+            
+        <div id="joueur-solo" class="content-section">
+            <h2 id="nom-joueur"></h2>
+            <img id="photo" src="" style="width:200px; border-radius:15px;">
+            <div class="box-info">
+                <p id="s-age"></p><p id="s-nat"></p><p id="s-numero"></p><p id="s-paye"></p><p id="s-valeur"></p><p id="s-fin"></p><p id="s-noteea"></p>
+                <div class="bio-container" id="s-bio"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        
+        function checkPassword() {
+            const input = document.getElementById('site-password').value;
+            const error = document.getElementById('lock-error');
+            if (input === "Rider77") {
+                document.getElementById('lock-screen').style.display = 'none';
+            } else {
+                error.innerText = "Mot de passe incorrect ❌";
+            }
+        }
+
+        document.getElementById('site-password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        const effectif = {
+            'bettinelli': { nom: "Marcus Bettinelli", poste: "Gardien", nat: "Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿󠁧󠁢󠁥󠁮󠁧󠁿󠁧󠁢󠁥󠁮󠁧󠁿", numero: "13", paye: "177 000 €", fin: "30/06/2027", valeur: "0.3M €", noteea: "69", naissance: "24/05/1992", img: "bettinelli.jpg", bio: "Gardien expérimenté anglais, 3ème choix avec sérénité et leadership dans le groupe.", matchs: 1, buts: 0, passes: 0},
+            'donnarumma': { nom: "Gianluigi Donnarumma", poste: "Gardien", nat: "Italie 🇮🇹", numero: "1", paye: "1 230 000 €", fin: "30/06/2030", valeur: "45M €", noteea: "89", naissance: "25/02/1999", img: "donnarumma.jpg", bio: "Gardien italien de classe mondiale, héros de l'Euro, référence européenne.", matchs: 10, buts: 0, passes: 0},
+            'rulli': { nom: "Geronimo Rulli", poste: "Gardien", nat: "Argentine 🇦🇷", numero: "28", paye: "205 000", fin: "30/06/2028", valeur: "6M €", noteea: "80", naissance: "20/05/1992", img: "rulli.jpg", bio: "Gardien argentin champion du monde, relance propre et présence rassurante.", matchs: 1, buts: 0, passes: 0},
+            'ait-nouri': { nom: "Rayan Ait-Nouri", poste: "Défenseur", nat: "Algérie 🇩🇿", numero: "21", paye: "151 000 €", fin: "30/06/2030", valeur: "40M €", noteea: "81", naissance: "06/06/2001", img: "ait-nouri.jpg", bio: "Latéral gauche algérien, offensif et technique, projection constante sur le flanc.", matchs: 5, buts: 2, passes: 3},
+            'braithwaite': { nom: "Kaden Braithwaite", poste: "Défenseur", nat: "Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿󠁧󠁢󠁥󠁮󠁧󠁿󠁧󠁢󠁥󠁮󠁧󠁿", numero: "61", paye: "15 000", fin: "30/06/2028", valeur: "4M €", noteea: "Non noté", naissance: "08/02/2008", img: "braithwaite.jpg", bio: "Jeune défenseur anglais du centre de formation, potentiel prometteur.", matchs: 2, buts: 0, passes: 0},
+            'dias': { nom: "Ruben Dias", poste: "Défenseur", nat: "Portugal 🇵🇹", numero: "3", paye: "1 200 000 €", fin: "30/06/2029", valeur: "55M €", noteea: "87", naissance: "14/05/1997", img: "dias.jpg", bio: "Défenseur central portugais, pilier défensif leader et organisateur de la ligne.", matchs: 9, buts: 0, passes: 0},
+            'guehi': { nom: "Marc Guéhi", poste: "Défenseur", nat: "Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿󠁧󠁢󠁥󠁮󠁧󠁿󠁧󠁢󠁥󠁮󠁧󠁿", numero: "6", paye: "253 000 €", fin: "30/06/2031", valeur: "70M €", noteea: "85", naissance: "13/07/2000", img: "guehi.jpg", bio: "Défenseur central anglais solide, nouvelle recrue fiable et compétitive.", matchs: 7, buts: 1, passes: 1},
+            'gvardiol': { nom: "Josko Gvardiol", poste: "Défenseur", nat: "Croatie 🇭🇷", numero: "24", paye: "1 310 000", fin: "30/06/2031", valeur: "70M €", noteea: "85", naissance: "23/01/2002", img: "gvardiol.jpg", bio: " Défenseur croate complet, polyvalent et fort en duel aérien.", matchs: 10, buts: 1, passes: 2},
+            'khusanov': { nom: "Abdukodir Khusanov", poste: "Défenseur", nat: "Ouzbékistan 🇺🇿", numero: "45", paye: "433 000", fin: "30/06/2031", valeur: "50M €", noteea: "82", naissance: "29/02/2004", img: "khusanov.jpg", bio: "Révélation ouzbèke, défenseur central en progression constante.", matchs: 8, buts: 0, passes: 0},
+            'lewis': { nom: "Rico Lewis", poste: "Défenseur", nat: "Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿󠁧󠁢󠁥󠁮󠁧󠁿", numero: "82", paye: "123 000 €", fin: "30/06/2030", valeur: "28M €", noteea: "77", naissance: "21/11/2004", img: "lewis.jpg", bio: "Talent de l'académie, futur cadre polyvalent et intelligent.", matchs: 6, buts: 0, passes: 0},
+            'nunes': { nom: "Matheus Nunes", poste: "Défenseur", nat: "Portugal 🇵🇹", numero: "27", paye: "658 000 €", fin: "30/06/2028", valeur: "50M €", noteea: "83", naissance: "27/08/1998", img: "nunes.jpg", bio: "Milieu/défenseur portugais puissant, physique imposant et combativité.", matchs: 6, buts: 0, passes: 0},
+            'oreilly': { nom: "Nico O'Reilly", poste: "Défenseur", nat: "Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿󠁧󠁢󠁥󠁮󠁧󠁿", numero: "33", paye: "150 000 €", fin: "30/06/2030", valeur: "70M €", noteea: "83", naissance: "21/03/2005", img: "o'reilly.jpg", bio: "Milieu défensif anglais local, intelligence de jeu et travail acharné.", matchs: 5, buts: 0, passes: 1},
+            'reis': { nom: "Vitor Reis", poste: "Défenseur", nat: "Brésil 🇧🇷", numero: "22", paye: "200 000", fin: "30/06/2029", valeur: "30M €", noteea: "76", naissance: "12/01/2006", img: "reis.jpg", bio: "Jeune défenseur brésilien, technique et adaptabilité sur plusieurs postes.", matchs: 5, buts: 0, passes: 0},
+            'anderson': { nom: "Elliot Anderson", poste: "Milieu", nat: "Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿󠁧󠁢󠁥󠁮󠁧󠁿", numero: "5", paye: "350 000", fin: "30/06/2031", valeur: "110M €", noteea: "84", naissance: "06/11/2002", img: "anderson.jpg", bio: "Milieu anglais très doué, vision et créativité en demi.", matchs: 7, buts: 0, passes: 0},
+            'bouaddi': { nom: "Ayyoub Bouaddi", poste: "Milieu", nat: "Maroc 🇲🇦", numero: "32", paye: "167 000", fin: "30/06/2031", valeur: "80M €", noteea: "80", naissance: "02/10/2007", img: "bouaddi.jpg", bio: "Jeune milieu marocain, succeseur à venir de Rodri.", matchs: 5, buts: 0, passes: 1},
+            'cherki': { nom: "Rayan Cherki", poste: "Milieu", nat: "France 🇫🇷", numero: "10", paye: "333 000 €", fin: "30/06/2030", valeur: "90M €", noteea: "86", naissance: "17/08/2003", img: "cherki.jpg", bio: "Magicien français du jeu, dribbles et passe décisive garantis.", matchs: 8, buts: 4, passes: 2},
+            'fernandez': { nom: "Enzo Fernandez", poste: "Milieu", nat: "Argentine 🇦🇷", numero: "17", paye: "INCONNU", fin: "30/06/2031", valeur: "100M €", noteea: "86", naissance: "17/01/2001", img: "fernandez.jpg", bio: "Talent argentin, l'un des meilleurs milieux au monde.", matchs: 4, buts: 1, passes: 1},
+            'foden': { nom: "Phil Foden", poste: "Milieu", nat: "Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿󠁧󠁢󠁥󠁮󠁧󠁿", numero: "47", paye: "1 470 000", fin: "30/06/2030", valeur: "70M €", noteea: "84", naissance: "28/05/2000", img: "foden.jpg", bio: "Milieu anglais idolâtré, polyvalent techniquement et buteur occasionnel.", matchs: 9, buts: 0, passes: 3},
+            'kovacic': { nom: "Matéo Kovacic", poste: "Milieu", nat: "Croatie 🇭🇷", numero: "8", paye: "760 000 €", fin: "30/06/2027", valeur: "10M €", noteea: "81", naissance: "06/05/1994", img: "kovacic.jpg", bio: "Milieu croate expérimenté, passeurs clés et contrôle de rythme.", matchs: 8, buts: 0, passes: 0},
+            'samba': { nom: "Floyd Samba", poste: "Milieu", nat: "Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "75", paye: "15 000", fin: "30/06/2028", valeur: "2M €", noteea: "Non noté", naissance: "15/01/2009", img: "samba.jpg", bio: "Jeune milieu anglais émergent, potentiel exceptionnel à long terme.", matchs: 1, buts: 2, passes: 0},
+            'allan': { nom: "Allan", poste: "Attaquant", nat: "Brésil 🇧🇷", numero: "37", paye: "INCONNU", fin: "30/06/2031", valeur: "20M €", noteea: "Non noté", naissance: "19/04/2004", img: "allan.jpg", bio: "Milieu brésilien de 22 ans, prometteur pour l'entrejeu.", matchs: 1, buts: 1, passes: 1},
+            'doku': { nom: "Jérémy Doku", poste: "Attaquant", nat: "Belgique 🇧🇪", numero: "11", paye: "780 000", fin: "30/06/2031", valeur: "75M €", noteea: "84", naissance: "27/05/2002", img: "doku.jpg", bio: "Ailier belge explosif, vitesse pure et dépassement de marque.", matchs: 2, buts: 0, passes: 0},
+            'haaland': { nom: "Erling Haaland", poste: "Attaquant", nat: "Norvège 🇳🇴", numero: "9", paye: "2 570 000 €", fin: "30/06/2034", valeur: "220M €", noteea: "91", naissance: "21/07/2000", img: "haaland.jpg", bio: " Phénomène norvégien, recordman de buts et finaliste né.", matchs: 7, buts: 7, passes: 0},
+            'mcaidoo': { nom: "Ryan McAidoo", poste: "Attaquant", nat: "Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "56", paye: "15 000", fin: "30/06/2028", valeur: "8M €", noteea: "Non noté", naissance: "24/06/2008", img: "mcaidoo.jpg", bio: "Jeune attaquant anglais du centre de formation, à suivre de près.", matchs: 4, buts: 1, passes: 0},
+            'ndiaye': { nom: "Iliman Ndiaye", poste: "Attaquant", nat: "Sénégal 🇸🇳", numero: "7", paye: "INCONNU", fin: "30/06/2031", valeur: "55M", noteea: "82", naissance: "06/03/2000", img: "ndiaye.jpg", bio: "Ailier international sénégalais à suivre de près durant la saison", matchs: 6, buts: 0, passes: 1},
+            'semenyo': { nom: "Antoine Semenyo", poste: "Attaquant", nat: "Ghana 🇬🇭", numero: "42", paye: "760 000 €", fin: "30/06/2031", valeur: "80M €", noteea: "85", naissance: "07/01/2000", img: "semenyo.jpg", bio: "Attaquant ghanéen puissant, force physique et finition redoutable.", matchs: 10, buts: 2, passes: 7},
+            'maresca': { nom: "Enzo Maresca", poste: "Coach", nat: "Italie 🇮🇹", numero: "Aucun", paye: "1 000 000", fin: "30/06/2029", noteea: "Non noté", naissance: "10/02/1980", img: "maresca.jpg", bio: "Entraîneur italien à Manchester City depuis 2026, philosophie de possession et pressing haut."},
+
+        };
+
+const centreFormation = {
+    'max-hudson': { nom:"Max Hudson", poste:"Gardien", naissance:"20/09/2007", nat:"Pays de Galles 🏴󠁧󠁢󠁷󠁬󠁳󠁿", numero: "69", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"gardienmax.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'max-edgar-chabot': { nom:"Max Edgar Chabot", poste:"Gardien", naissance:"01/04/2008", nat:"France 🇫🇷", numero: "94", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"gardienmaxedgar.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+
+    'matty-henderson-hall': { nom:"Matty Henderson-Hall", poste:"Défenseur", naissance:"08/12/2006", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "89", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"defenseurmatty.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'luke-mbete': { nom:"Luke Mbete", poste:"Défenseur", naissance:"18/09/2003", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "79", paye: "2 500", fin: "Non précisée", valeur: "0.7M €", noteea: "Non noté", img:"defenseurluke.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'brooklyn-nfonkeu': { nom:"Brooklyn Nfonkeu", poste:"Défenseur", naissance:"01/07/2007", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "48", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"defenseurbrooklyn.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'kian-noble': { nom:"Kian Noble", poste:"Défenseur", naissance:"26/02/2007", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "90", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"defenseurkian.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'harrison-parker': { nom:"Harrison Parker", poste:"Défenseur", naissance:"22/09/2006", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "55", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"defenseurharrison.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'oliver-tevenan': { nom:"Oliver Tevenan", poste:"Défenseur", naissance:"12/12/2007", nat:"Irlande 🇮🇪", numero: "92", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"defenseuroliver.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'dante-headley': { nom:"Dante Headley", poste:"Défenseur", naissance:"18/09/2008", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "88", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"defenseurdante.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'leke-drake': { nom:"Leke Drake", poste:"Défenseur", naissance:"25/12/2007", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "83", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"defenseurleke.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'charlie-courtman': { nom:"Charlie Courtman", poste:"Défenseur", naissance:"14/10/2007", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "74", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"defenseurcharlie.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'wilson-esbrand': { nom: "Joshua Wilson-Esbrand", poste: "Défenseur", naissance: "26/12/2002", nat: "Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿󠁧󠁢󠁥󠁮󠁧󠁿", numero: "59", paye: "25 000", fin: "30/06/2027", valeur: "2.5M €", noteea: "66", img: "wilson-esbrand.jpg", bio: "Jeune joueur du centre de formation.", matchs: 0, buts: 0, passes: 0},
+ 
+    
+    'femi-fapetu': { nom:"Femi Fapetu", poste:"Milieu", naissance:"04/08/2007", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "60", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"milieufemi.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'finley-gorman': { nom:"Finley Gorman", poste:"Milieu", naissance:"20/09/2008", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "87", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"milieufinley.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'harrison-miles': { nom:"Harrison Miles", poste:"Milieu", naissance:"28/07/2008", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "96", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"milieuharrison.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'xavier-parker': { nom:"Xavier Parker", poste:"Milieu", naissance:"09/05/2010", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "73", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"milieuxavier.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'rhys-thomas': { nom:"Rhys Thomas", poste:"Milieu", naissance:"05/11/2006", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "Aucun", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"defenseurrhys.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    
+    'christian-dunbar-mcdonald': { nom:"Christian Dunbar McDonald", poste:"Attaquant", naissance:"29/10/2007", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "86", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"attaquantchristian.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'kylan-midwood': { nom:"Kylan Midwood", poste:"Attaquant", naissance:"02/07/2009", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "98", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"attaquantkylan.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 },
+    'tyrone-samba': { nom:"Tyrone Samba", poste:"Attaquant", naissance:"31/12/2007", nat:"Angleterre 🏴󠁧󠁢󠁥󠁮󠁧󠁿", numero: "97", paye: "2 500", fin: "Non précisée", valeur: "Non noté", noteea: "Non noté", img:"attaquanttyrone.jpg", bio: "Jeune joueur du centre de formation.", matchs:0, buts:0, passes:0 }
+};
+
+const joueursPret = [
+    { nom: "Pierce Charles", poste: "Gardien", club: "QPR", photo: "static/images/charles.jpg" },
+    { nom: "Max Alleyne", poste: "Défenseur", club: "Burnley", photo: "static/images/alleyne.jpg" },
+    { nom: "Abdulai Juma Bah", poste: "Défenseur", club: "Ausbourg", photo: "static/images/bah.jpg" },
+    { nom: "Mathys Detourbet", poste: "Milieu", club: "Monaco", photo: "static/images/detourbet.jpg" },
+    { nom: "Sverre Nypan", poste: "Milieu", club: "Lommel SK", photo: "static/images/nypan.jpg" },
+    { nom: "Kalvin Phillips", poste: "Milieu", club: "Sheffield Utd", photo: "static/images/phillips.jpg" },
+    { nom: "Claudio Echeverri", poste: "Milieu", club: "Benfica", photo: "static/images/echeverri.jpg" },
+    { nom: "Jack Grealish", poste: "Attaquant", club: "Everton", photo: "static/images/grealish.jpg" },
+    { nom: "Jeremy Monga", poste: "Attaquant", club: "Swansea City", photo: "static/images/monga.jpg" },
+    { nom: "Omar Marmoush", poste: "Attaquant", club: "Tottenham", photo: "static/images/marmoush.jpg" },
+    
+    
+    { nom: "Spike Brits", poste: "Gardien", club: "Sutton United", photo: "static/images/gardienspike.jpg" },
+    { nom: "Oliver Whatmuff", poste: "Gardien", club: "Stockport", photo: "static/images/gardienoliver.jpg" },
+    { nom: "Jack Wint", poste: "Gardien", club: "Kidderminster", photo: "static/images/gardienjack.jpg" },
+    { nom: "Stephen Mfuni", poste: "Défenseur", club: "Coventry City", photo: "static/images/defenseurstephen.jpg" },
+    { nom: "Christian McFarlane", poste: "Défenseur", club: "Leicester", photo: "static/images/defenseurchristian.jpg" },
+    { nom: "Lakyle Samuel", poste: "Défenseur", club: "Exeter City", photo: "static/images/defenseurlakyle.jpg" },
+    { nom: "Isaiah Dada-Mascoll", poste: "Milieu", club: "Lommel SK", photo: "static/images/milieuisaiah.jpg" },
+    { nom: "Jaden Heskey", poste: "Milieu", club: "Sheffield Wednesday", photo: "static/images/milieujaden.jpg" },
+    { nom: "Charlie Gray", poste: "Milieu", club: "Wigan", photo: "static/images/milieucharlie.jpg" },
+    { nom: "Divine Mukasa", poste: "Milieu", club: "West Ham", photo: "static/images/milieudivine.jpg" },
+    { nom: "Emilio Lawrence", poste: "Attaquant", club: "Luton", photo: "static/images/attaquantemilio.jpg" },
+    { nom: "Divin Mubama", poste: "Attaquant", club: "Southampton", photo: "static/images/attaquantdivin.jpg" },
+
+    { nom: "Eve Annets", poste: "Gardienne", club: "Hibernian", photo: "static/images/gardienneannets.jpg" },
+    { nom: "Naomi Layzell", poste: "Défenseuse", club: "Everton", photo: "static/images/defenseurelayzell.jpg" },
+    { nom: "Codie Thomas", poste: "Défenseuse", club: "Nottingham Forest", photo: "static/images/defenseurethomas.jpg" },
+    { nom: "Lily Murphy", poste: "Attaquante", club: "Aston Villa", photo: "static/images/attaquantemurphy.jpg" },
+];
+
+        const effectifFemmes = {
+
+gardiennes: [
+{nom:"Eartha Cumings", naissance:"11/06/1999", note:"72", img:"gardiennecumings.jpg"},
+{nom:"Ayaka Yamashita", naissance:"29/09/1995", note:"79", img:"gardienneyamashita.jpg"},
+{nom:"Anna Moorhouse", naissance:"30/03/1995", note:"81", img:"gardiennemoorhouse.jpg"}
+],
+
+defenseuses:[
+{nom:"Kerstin Casparij", naissance:"19/08/2000", note:"79", img:"defenseurecasparij.jpg"},
+{nom:"Niamh Charles", naissance:"21/06/1999", note:"83", img:"defenseurecharles.jpg"},
+{nom:"Mayzee Davies", naissance:"25/08/2006", note:"Non notée", img:"defenseuredavies.jpg"},
+{nom:"Alex Greenwood", naissance:"07/09/1993", note:"84", img:"defenseuregreenwood.jpg"},
+{nom:"Rebecca Knaak", naissance:"23/06/1996", note:"78", img:"defenseureknaak.jpg"},
+{nom:"Sacha Lewis", naissance:"28/02/2008", note:"Non notée", img:"defenseuresacha.jpg"},
+{nom:"Grace Prior", naissance:"02/12/2004", note:"72", img:"defenseureprior.jpg"},
+{nom:"Jade Rose", naissance:"12/02/2003", note:"73", img:"defenseurerose.jpg"},
+{nom:"Risa Shimizu", naissance:"15/06/1996", note:"79", img:"defenseureshimizu.jpg"},
+{nom:"Carlotta Wamser", naissance:"01/11/2003", note:"77", img:"defenseurewamser.jpg"},
+{nom:"Laura Wienroither", naissance:"13/01/1999", note:"72", img:"defenseurewienroither.jpg"}
+],
+
+milieuses:[
+{nom:"Laura Blindkilde Brown", naissance:"09/12/2003", note:"72", img:"milieublindkilde-brown.jpg"},
+{nom:"Grace Clinton", naissance:"31/03/2003", note:"78", img:"milieuclinton.jpg"},
+{nom:"Sam Coffey", naissance:"31/12/1998", note:"82", img:"milieucoffey.jpg"},
+{nom:"Yui Hasegawa", naissance:"29/01/1997", note:"85", img:"milieuhasegawa.jpg"},
+{nom:"Sydney Lohmann", naissance:"19/06/2000", note:"80", img:"milieulohmann.jpg"},
+{nom:"Amelia Oldroyd", naissance:"12/06/2007", note:"Non notée", img:"milieuoldroyd.jpg"},
+],
+
+attaquantes:[
+{nom:"Iman Beney", naissance:"23/07/2006", note:"62", img:"attaquantebeney.jpg"},
+{nom:"Mary Fowler", naissance:"14/02/2003", note:"79", img:"attaquantefowler.jpg"},
+{nom:"Aoba Fujino", naissance:"27/01/2004", note:"77", img:"attaquantefujino.jpg"},
+{nom:"Lauren Hemp", naissance:"07/08/2000", note:"87", img:"attaquantehemp.jpg"},
+{nom:"Beth Mead", naissance:"09/05/1995", note:"87", img:"attaquantemead.jpg"},
+{nom:"Vivienne Miedema", naissance:"15/07/1996", note:"85", img:"attaquantemiedema.jpg"},
+{nom:"Khadija Shaw", naissance:"31/01/1997", note:"89", img:"attaquanteshaw.jpg"}
+]
+
+};
+
+        const joueursDraft = Object.values(effectif)
+    .filter(j => j.poste !== "Coach")
+    .map(j => ({
+        nom: j.nom,
+        note: parseInt(j.noteea) || 60,
+        prix: parseFloat(
+            String(j.valeur)
+                .replace("M €", "")
+                .replace(",", ".")
+        ) || 1,
+        img: j.img
+    }));
+
+        function toggleMenu(event) { event.stopPropagation(); document.getElementById('menu').classList.toggle('ouvert'); }
+        function toggleSubMenu(id) { document.getElementById(id).classList.toggle('show'); }
+        function showSection(id) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.sous-menu').forEach(sm => sm.classList.remove('show'));
+            document.getElementById('menu').classList.remove('ouvert');
+            selectedSpotElement = null; 
+            document.querySelectorAll('.player-spot').forEach(s => s.classList.remove('selected'));
+        }
+
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('menu');
+            const btnMenu = document.getElementById('btn-menu');
+            if (menu.classList.contains('ouvert') && !menu.contains(event.target) && event.target !== btnMenu) {
+                document.querySelectorAll('.sous-menu').forEach(sm => sm.classList.remove('show'));
+                menu.classList.remove('ouvert');
+            }
+        });
+
+        function afficherJoueur(id) {
+
+    // Cherche d'abord dans l'équipe première
+    let j = effectif[id];
+
+    // Si pas trouvé, cherche dans l'EDS
+    if (!j) {
+        j = centreFormation[id];
+    }
+
+    if (!j) {
+        console.error("Joueur introuvable :", id);
+        return;
+    }
+
+    // Valeurs par défaut pour les joueurs EDS
+    const joueur = {
+        nom: j.nom || "Inconnu",
+        poste: j.poste || "N/A",
+        naissance: j.naissance || "",
+        nat: j.nat || "N/A",
+        numero: j.numero || "N/A",
+        paye: j.paye || "N/A",
+        fin: j.fin || "N/A",
+        valeur: j.valeur || "N/A",
+        noteea: j.noteea || "Non noté",
+        bio: j.bio || "Jeune joueur du centre de formation.",
+        img: j.img || "",
+        matchs: j.matchs || 0,
+        buts: j.buts || 0,
+        passes: j.passes || 0
+    };
+
+    // Affichage des informations
+    document.getElementById('s-age').previousElementSibling.innerText = "Âge";
+    document.getElementById('s-nat').previousElementSibling.innerText = "Nationalité";
+    document.getElementById('s-numero').previousElementSibling.innerText = "Numéro";
+
+    document.getElementById('s-paye').parentNode.style.display = "";
+    document.getElementById('s-fin').parentNode.style.display = "";
+    document.getElementById('s-valeur').parentNode.style.display = "";
+    document.getElementById('s-noteea').parentNode.style.display = "";
+
+    const statsBlock =
+        document.getElementById('s-matchs')?.parentNode?.parentNode;
+
+    if (statsBlock) statsBlock.style.display = "";
+
+    // Remplissage
+    document.getElementById('nom-joueur').innerText = joueur.nom;
+
+    document.getElementById('s-age').innerText =
+        joueur.naissance ? calculerAge(joueur.naissance) : "N/A";
+
+    document.getElementById('s-nat').innerText = joueur.nat;
+    document.getElementById('s-numero').innerText = joueur.numero;
+    document.getElementById('s-paye').innerText = joueur.paye;
+    document.getElementById('s-fin').innerText = joueur.fin;
+    document.getElementById('s-valeur').innerText = joueur.valeur;
+    document.getElementById('s-noteea').innerText = joueur.noteea;
+    document.getElementById('s-bio').innerText = joueur.bio;
+
+    document.getElementById('photo').src =
+        "static/images/" + joueur.img;
+
+    document.getElementById('s-matchs').innerText =
+        joueur.matchs || 0;
+
+    document.getElementById('s-buts').innerText =
+        joueur.buts || 0;
+
+    document.getElementById('s-passes').innerText =
+        joueur.passes || 0;
+
+    showSection('joueur-solo');
+}
+        
+let bonusJoueur = "";
+let bonusBot = "";
+let draftPioche = [];
+
+let draftBudgetJoueur = 250;
+let draftBudgetBot = 250;
+
+
+let bonusSautJoueur = 2;
+let bonusSautBot = 0;
+
+let bonusBudgetJoueur = true;
+let bonusReductionJoueur = true;
+let reductionActive = false;
+let bonusReductionBot = false;
+// BONUS SPÉCIAUX (15% de chance)
+let bonusSpecialJoueur = null;
+let bonusSpecialBot = null;
+
+document.getElementById("btn-sauter").disabled = true;
+document.getElementById("btn-sauter").innerText = "Sauter";
+
+let draftEquipeJoueur = [];
+let draftEquipeBot = [];
+
+let joueurDraftActuel = null;
+
+let enchereActuelle = 0;
+let proprietaireEnchere = null;
+        
+let botPrixMax = 0;
+let premierJoueur = "joueur";
+
+function melangerTableau(tableau){
+
+    for(let i = tableau.length - 1; i > 0; i--){
+
+        const j = Math.floor(
+            Math.random() * (i + 1)
+        );
+
+        [tableau[i], tableau[j]] =
+        [tableau[j], tableau[i]];
+    }
+
+    return tableau;
+}
+
+function ouvrirDraft(){
+
+    if(typeof showSection === "function"){
+        showSection("draft-view");
+    }
+
+    document.getElementById(
+        "zone-restart"
+    ).style.display = "none";
+
+    // Réinitialisation budgets
+    draftBudgetJoueur = 250;
+    draftBudgetBot = 250;
+
+    const bonusPossibles = [
+    "budget",
+    "reduction",
+    "doubleSaut"
+];
+
+bonusJoueur =
+    bonusPossibles[
+        Math.floor(
+            Math.random() * bonusPossibles.length
+        )
+    ];
+
+bonusBot =
+    bonusPossibles[
+        Math.floor(
+            Math.random() * bonusPossibles.length
+        )
+    ];
+
+    // BONUS SPECIAUX (15%)
+bonusSpecialJoueur = genererBonusSpecial();
+bonusSpecialBot = genererBonusSpecial();
+
+if(bonusSpecialJoueur === "cash"){
+    ajouterHistorique("🎁 Bonus spécial : +50 M€");
+}
+
+if(bonusSpecialJoueur === "free"){
+    ajouterHistorique("🎁 Bonus spécial : achat gratuit");
+}
+
+if(bonusSpecialJoueur === "vol"){
+    ajouterHistorique("🎁 Bonus spécial : vol de joueur");
+}
+
+if(bonusSpecialJoueur){
+    ajouterHistorique("🎁 Bonus spécial joueur débloqué !");
+}
+
+if(bonusSpecialBot){
+    ajouterHistorique("🤖 Le bot prépare un bonus spécial...");
+}
+
+    // Réinitialisation équipes
+    draftEquipeJoueur = [];
+    draftEquipeBot = [];
+
+    // Réinitialisation bonus Sauter
+        bonusSautJoueur = 0;
+        bonusSautBot = 0;
+
+        bonusBudgetJoueur = false;
+        bonusReductionJoueur = false;
+        bonusReductionBot = false;
+        reductionActive = false;
+
+        // Bonus joueur
+
+if(bonusJoueur === "budget"){
+    bonusBudgetJoueur = true;
+}
+
+if(bonusJoueur === "reduction"){
+    bonusReductionJoueur = true;
+}
+
+if(bonusJoueur === "doubleSaut"){
+    bonusSautJoueur = 2;
+}
+
+// Bonus bot
+
+if(bonusBot === "budget"){
+    draftBudgetBot += 20;
+}
+
+if(bonusBot === "doubleSaut"){
+    bonusSautBot = 2;
+}
+
+if(bonusBot === "reduction"){
+    bonusReductionBot = true;
+}
+
+        const btnSaut = document.getElementById("btn-sauter");
+        btnSaut.disabled = false;
+        btnSaut.innerText = "🗑️ Sauter";
+        document.getElementById(
+            "btn-budget"
+        ).disabled = false;
+
+        document.getElementById(
+            "btn-budget"
+        ).innerText = "💸 +20 M€";
+
+        document.getElementById(
+            "btn-reduction"
+        ).disabled = false;
+
+        document.getElementById(
+            "btn-reduction"
+        ).innerText = "🎯 -50%";
+
+        document.getElementById(
+            "btn-sauter"
+        ).disabled = false;
+
+        document.getElementById(
+            "btn-sauter"
+        ).innerText =
+        "🗑️ Saut (2)";
+
+        // Cache tous les bonus
+document.getElementById("btn-budget").style.display = "none";
+document.getElementById("btn-reduction").style.display = "none";
+document.getElementById("btn-sauter").style.display = "none";
+
+// Affiche uniquement le bonus obtenu
+if (bonusJoueur === "budget") {
+    document.getElementById("btn-budget").style.display = "inline-block";
+}
+
+if (bonusJoueur === "reduction") {
+    document.getElementById("btn-reduction").style.display = "inline-block";
+}
+
+if (bonusJoueur === "doubleSaut") {
+    document.getElementById("btn-sauter").style.display = "inline-block";
+}
+
+    // Réinitialisation enchères
+    joueurDraftActuel = null;
+    enchereActuelle = 0;
+    proprietaireEnchere = null;
+
+    // Nouvelle pioche mélangée
+    draftPioche = melangerTableau(
+        [...joueursDraft]
+    );
+
+    // Nettoyage interface
+    document.getElementById(
+        "draft-resultat"
+    ).innerHTML = "";
+
+    document.getElementById(
+        "historique-enchere"
+    ).innerHTML = "";
+
+    document.getElementById(
+        "draft-carte"
+    ).innerHTML = "";
+
+    document.getElementById(
+        "montant-enchere"
+    ).value = "";
+
+    if(bonusJoueur === "budget"){
+    ajouterHistorique("🎁 Ton bonus : 💸 +20 M€");
+}
+
+if(bonusJoueur === "reduction"){
+    ajouterHistorique("🎁 Ton bonus : 🎯 Réduction 50%");
+}
+
+if(bonusJoueur === "doubleSaut"){
+    ajouterHistorique("🎁 Ton bonus : 🔥 Double saut");
+}
+
+ajouterHistorique(
+    "🤖 Le bot reçoit un bonus secret"
+);
+
+    // Mise à jour affichage
+    majDraft();
+
+    // Nouveau draft
+    prochainJoueurDraft();
+}
+        
+function prochainJoueurDraft(){
+
+    if(joueurDraftActuel !== null){
+    return;
+}
+
+    document.getElementById(
+        "btn-encherir"
+    ).disabled = false;
+
+    document.getElementById(
+        "btn-abandonner"
+    ).disabled = false;
+
+    // Si un trio est terminé, on complète automatiquement l'autre
+    if(
+        draftEquipeJoueur.length >= 3 &&
+        draftEquipeBot.length < 3
+    ){
+
+        while(
+    draftEquipeBot.length < 3 &&
+    draftPioche.length > 0
+){
+
+    draftEquipeBot.push(
+        draftPioche.shift()
+    );
+
+    draftBudgetBot -= 0;
+}
+
+majDraft();
+
+finDraft();
+return;
+    }
+
+    if(
+        draftEquipeBot.length >= 3 &&
+        draftEquipeJoueur.length < 3
+    ){
+
+        while(
+    draftEquipeJoueur.length < 3 &&
+    draftPioche.length > 0
+){
+
+    draftEquipeJoueur.push(
+        draftPioche.shift()
+    );
+
+    draftBudgetJoueur -= 0;
+}
+
+majDraft();
+
+finDraft();
+return;
+    }
+
+    // Les deux trios sont complets
+    if(
+        draftEquipeJoueur.length >= 3 &&
+        draftEquipeBot.length >= 3
+    ){
+        finDraft();
+        return;
+    }
+
+    // Sécurité si la pioche est vide
+    if(draftPioche.length === 0){
+        finDraft();
+        return;
+    }
+
+    joueurDraftActuel =
+    draftPioche.shift();
+
+    // BONUS SPECIAL JOUEUR
+if(bonusSpecialJoueur){
+    ajouterHistorique("🎁 Tu as un bonus spécial disponible !");
+    document.getElementById("btn-bonus-special").style.display = "inline-block";
+}
+
+// BONUS SPECIAL BOT
+if(bonusSpecialBot){
+
+    let utiliser = false;
+
+    if(
+        bonusSpecialBot === "free" &&
+        joueurDraftActuel.note >= 88
+    ){
+        utiliser = true;
+    }
+
+    if(
+        bonusSpecialBot === "cash" &&
+        draftBudgetBot <= 80
+    ){
+        utiliser = true;
+    }
+
+    if(
+        bonusSpecialBot === "vol" &&
+        draftEquipeJoueur.length >= 2
+    ){
+        utiliser = true;
+    }
+
+    if(utiliser){
+
+        if(bonusSpecialBot === "cash"){
+            bonusCash("bot");
+        }
+
+        if(bonusSpecialBot === "free"){
+            acheterGratuit("bot");
+            bonusSpecialBot = null;
+            return;
+        }
+
+        if(bonusSpecialBot === "vol"){
+            volerJoueur("bot");
+        }
+
+        bonusSpecialBot = null;
+    }
+}
+
+    if(
+    draftBudgetJoueur <= 0 &&
+    draftBudgetBot <= 0
+){
+    ajouterHistorique(
+        `🗑️ ${joueurDraftActuel.nom} part (plus aucun budget)`
+    );
+
+    prochainJoueurDraft();
+    return;
+}
+
+premierJoueur =
+    premierJoueur === "joueur"
+    ? "bot"
+    : "joueur";
+
+let badgeElite = "";
+
+let meilleurNote = Math.max(
+    ...joueursDraft.map(j => j.note)
+);
+
+if(joueurDraftActuel.note === meilleurNote){
+    badgeElite = "👑";
+}
+if(
+    joueurDraftActuel.note === meilleurNote
+){
+    badgeElite = "👑";
+}
+    
+document.getElementById(
+        "historique-enchere"
+    ).innerHTML = "";
+    
+enchereActuelle = 0;
+proprietaireEnchere = null;
+
+ajouterHistorique(
+    `💰 Prix de départ : 0 M€`
+);
+
+    botPrixMax = Math.min(
+    draftBudgetBot,
+    joueurDraftActuel.prix * (
+        1.3 + Math.random() * 1.2
+    )
+);
+
+    document.getElementById(
+        "montant-enchere"
+    ).value = "";
+
+    let couleur = "#cd7f32"; // bronze
+
+if(joueurDraftActuel.note >= 85){
+    couleur = "#c0c0c0"; // argent
+}
+
+if(joueurDraftActuel.note >= 89){
+    couleur = "#ffd700"; // or
+}
+    
+// Couleur selon le poste
+let couleurPoste = "#ffffff";
+
+if(joueurDraftActuel.poste === "Attaquant"){
+    couleurPoste = "#ff3333"; // rouge
+}
+
+if(joueurDraftActuel.poste === "Milieu"){
+    couleurPoste = "#ffd700"; // jaune
+}
+
+if(joueurDraftActuel.poste === "Défenseur"){
+    couleurPoste = "#22c55e"; // vert
+}
+
+if(joueurDraftActuel.poste === "Gardien"){
+    couleurPoste = "#a855f7"; // violet
+}
+
+const nomImage =
+    joueurDraftActuel.nom
+        .split(" ")
+        .pop()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    
+document.getElementById(
+    "draft-carte"
+).innerHTML = `
+<div style="
+display:flex;
+align-items:center;
+justify-content:center;
+gap:30px;
+">
+
+<div
+class="draft-player-card"
+style="
+border:4px solid ${couleur};
+width:350px;
+padding:20px;
+border-radius:20px;
+">
+
+<h3>
+${badgeElite} ${joueurDraftActuel.nom}
+${badgeElite ? " 👑" : ""}
+</h3>
+
+<p>💰 Valeur : ${joueurDraftActuel.prix} M€</p>
+<p>⭐ Note : ${joueurDraftActuel.note}</p>
+
+</div>
+
+
+<div style="
+border:5px solid ${couleurPoste};
+border-radius:20px;
+padding:8px;
+box-shadow:0 0 20px ${couleurPoste};
+">
+
+<img
+src="static/images/${joueurDraftActuel.img}"
+style="
+width:180px;
+height:220px;
+object-fit:cover;
+border-radius:15px;
+"
+>
+
+</div>
+
+</div>
+`;
+    if(premierJoueur === "bot"){
+
+    setTimeout(
+        tourBotInitial,
+        500
+    );
+}
+
+}
+
+function bonusCash(utilisateur){
+    if(utilisateur === "joueur"){
+        draftBudgetJoueur += 50;
+        ajouterHistorique("💰 +50M € ajoutés à ton budget !");
+    } else {
+        draftBudgetBot += 50;
+        ajouterHistorique("🤖 +50M € pour le bot !");
+    }
+
+    majDraft(); // ✅ IMPORTANT : synchronise l'affichage
+}
+
+function acheterGratuit(utilisateur){
+    if(!joueurDraftActuel) return;
+
+    if(utilisateur === "joueur"){
+        draftEquipeJoueur.push(joueurDraftActuel);
+        ajouterHistorique(`🆓 ${joueurDraftActuel.nom} rejoint ton équipe gratuitement !`);
+    } else {
+        draftEquipeBot.push(joueurDraftActuel);
+        ajouterHistorique(`🤖 ${joueurDraftActuel.nom} rejoint le bot gratuitement !`);
+    }
+
+    joueurDraftActuel = null;
+    majDraft();
+    setTimeout(prochainJoueurDraft, 1500);
+}
+
+function utiliserBonusSpecialBot(){
+
+    if(!bonusSpecialBot || !joueurDraftActuel) return;
+
+    const r = Math.random();
+
+    if(r < 0.33){
+        bonusCash("bot");
+    }
+    else if(r < 0.66){
+        acheterGratuit("bot");
+    }
+    else{
+        volerJoueur("bot");
+    }
+
+    bonusSpecialBot = null;
+}
+        
+function volerJoueur(utilisateur){
+
+    if(!joueurDraftActuel) return;
+
+    if(
+        utilisateur === "bot" &&
+        draftEquipeBot.length >= 3
+    ){
+        return;
+    }
+
+    if(
+        utilisateur === "joueur" &&
+        draftEquipeJoueur.length >= 3
+    ){
+        return;
+    }
+
+    let cibleEquipe =
+        (utilisateur === "joueur")
+        ? draftEquipeBot
+        : draftEquipeJoueur;
+
+    if(cibleEquipe.length === 0){
+        ajouterHistorique("❌ Aucun joueur à voler");
+        return;
+    }
+    
+    if(!joueurDraftActuel) return;
+
+    let meilleurIndex = 0;
+
+for(let i = 1; i < cibleEquipe.length; i++){
+
+    if(
+        cibleEquipe[i].note >
+        cibleEquipe[meilleurIndex].note
+    ){
+        meilleurIndex = i;
+    }
+}
+
+const vole =
+    cibleEquipe.splice(
+        meilleurIndex,
+        1
+    )[0];
+
+    if(utilisateur === "joueur"){
+        draftEquipeJoueur.push(vole);
+        ajouterHistorique(`🪄 Tu voles ${vole.nom} au bot !`);
+    } else {
+        draftEquipeBot.push(vole);
+        ajouterHistorique(`🤖 Le bot te vole ${vole.nom} !`);
+    }
+
+    majDraft();
+}
+
+function utiliserBonusSpecial(){
+
+    if(!bonusSpecialJoueur || !joueurDraftActuel) return;
+
+    if(bonusSpecialJoueur === "cash"){
+        bonusCash("joueur");
+    }
+    else if(bonusSpecialJoueur === "free"){
+        acheterGratuit("joueur");
+    }
+    else if(bonusSpecialJoueur === "vol"){
+        volerJoueur("joueur");
+    }
+
+    bonusSpecialJoueur = null;
+
+    document.getElementById(
+        "btn-bonus-special"
+    ).style.display = "none";
+}
+    
+function recommencerDraft(){
+
+    ouvrirDraft();
+
+}
+
+function utiliserBonusSaut(){
+
+    if(bonusSautJoueur <= 0){
+        alert("Plus de saut disponible.");
+        return;
+    }
+
+    bonusSautJoueur--;
+
+    document.getElementById(
+        "btn-sauter"
+    ).innerText =
+    `🗑️ Saut (${bonusSautJoueur})`;
+
+    if(bonusSautJoueur === 0){
+
+    document.getElementById(
+        "btn-sauter"
+    ).disabled = true;
+
+    document.getElementById(
+        "btn-sauter"
+    ).innerText =
+    "❌ Plus de saut";
+}
+
+    ajouterHistorique(
+        `🗑️ ${joueurDraftActuel.nom} n'est dans aucun trio.`
+    );
+
+    joueurDraftActuel = null;
+
+    setTimeout(
+        prochainJoueurDraft,
+        1000
+    );
+}
+
+function utiliserBonusBudget(){
+
+    if(!bonusBudgetJoueur){
+        alert("Bonus déjà utilisé.");
+        return;
+    }
+
+    bonusBudgetJoueur = false;
+
+    draftBudgetJoueur += 20;
+
+    document.getElementById(
+        "btn-budget"
+    ).disabled = true;
+
+    document.getElementById(
+        "btn-budget"
+    ).innerText = "❌ Utilisé";
+
+    ajouterHistorique(
+        "💸 Bonus budget : +20 M€"
+    );
+
+    majDraft();
+}
+
+function activerReduction(){
+
+    if(!bonusReductionJoueur){
+        alert("Bonus déjà utilisé.");
+        return;
+    }
+
+    bonusReductionJoueur = false;
+    reductionActive = true;
+
+    document.getElementById(
+        "btn-reduction"
+    ).disabled = true;
+
+    document.getElementById(
+        "btn-reduction"
+    ).innerText = "🎯 Actif";
+
+    ajouterHistorique(
+        "🎯 Réduction 50% activée"
+    );
+}
+     
+function faireEnchere(){
+
+    const montant =
+        Number(
+            document.getElementById(
+                "montant-enchere"
+            ).value
+        );
+
+    if(
+        document.getElementById(
+            "montant-enchere"
+        ).value === ""
+    ){
+        alert("Entre une somme (0 autorisé).");
+        return;
+    }
+
+// Première enchère
+if(
+    proprietaireEnchere === null &&
+    montant < enchereActuelle
+){
+    alert(
+        `L'offre minimale est ${enchereActuelle} M€`
+    );
+    return;
+}
+
+// Surenchère
+if(
+    proprietaireEnchere !== null &&
+    montant <= enchereActuelle
+){
+    alert(
+        "L'enchère doit être supérieure à l'offre actuelle."
+    );
+    return;
+}
+
+const coutReel =
+    reductionActive
+        ? Math.ceil(montant / 2)
+        : montant;
+
+if(coutReel > draftBudgetJoueur){
+    alert("Budget insuffisant.");
+    return;
+}
+    enchereActuelle = montant;
+    proprietaireEnchere = "joueur";
+
+    ajouterHistorique(
+        `👤 Toi : ${montant} M€`
+    );
+
+    tourBotEnchere();
+}
+
+function tourBotEnchere(){
+
+    if(draftEquipeBot.length >= 3){
+        proprietaireEnchere = "joueur";
+        gagnerJoueur();
+        return;
+    }
+
+    if(joueurDraftActuel.note < 80){
+        ajouterHistorique("🤖 Bot abandonne");
+        gagnerJoueur();
+        return;
+    }
+
+    let offreBot =
+        enchereActuelle +
+        Math.floor(Math.random() * 20) +
+        5;
+
+    // Le joueur ne peut plus suivre
+    if(draftBudgetJoueur <= enchereActuelle){
+        offreBot = enchereActuelle + 1;
+    }
+
+    if(
+        offreBot <= botPrixMax &&
+        offreBot <= draftBudgetBot
+    ){
+
+        enchereActuelle = offreBot;
+
+        proprietaireEnchere = "bot";
+
+        ajouterHistorique(
+            `🤖 Bot : ${offreBot} M€`
+        );
+
+    }else{
+
+        ajouterHistorique(
+            "🤖 Bot abandonne"
+        );
+
+        proprietaireEnchere = "joueur";
+        gagnerJoueur();
+    }
+}
+
+function abandonnerEnchere(){
+
+    // Si personne n'a encore enchéri
+    if(proprietaireEnchere === null){
+
+        alert(
+            "Tu dois d'abord faire une offre (même 0 M€)."
+        );
+
+        return;
+    }
+
+    if(
+        proprietaireEnchere === "bot"
+    ){
+
+        gagnerJoueur();
+
+    }else{
+
+        tourBotEnchere();
+
+    }
+}
+
+function gagnerJoueur(){
+
+    if(!joueurDraftActuel){
+        return;
+    }
+
+    if(
+    proprietaireEnchere === "joueur"
+){
+
+    if(draftEquipeJoueur.length < 3){
+
+        draftEquipeJoueur.push(
+            joueurDraftActuel
+        );
+
+    }
+
+    let prixFinal = enchereActuelle;
+
+if(reductionActive){
+
+    prixFinal =
+        Math.ceil(
+            enchereActuelle / 2
+        );
+
+    reductionActive = false;
+
+    ajouterHistorique(
+        `🎯 Réduction appliquée : ${prixFinal} M€`
+    );
+}
+
+draftBudgetJoueur -= prixFinal;
+
+    ajouterHistorique(
+        `🏆 ${joueurDraftActuel.nom} rejoint ton équipe`
+    );
+}
+
+    else if(
+    proprietaireEnchere === "bot"
+){
+
+    if(draftEquipeBot.length < 3){
+
+        draftEquipeBot.push(
+            joueurDraftActuel
+        );
+
+    }
+
+    let prixBot = enchereActuelle;
+
+    if(bonusReductionBot){
+
+        prixBot = Math.ceil(prixBot / 2);
+
+        bonusReductionBot = false;
+
+        ajouterHistorique(
+            `🤖 utilise son bonus réduction : ${prixBot} M€`
+        );
+    }
+
+    draftBudgetBot -= prixBot;
+
+    ajouterHistorique(
+        `🤖 ${joueurDraftActuel.nom} rejoint le bot`
+    );
+}
+
+    majDraft();
+
+    joueurDraftActuel = null;
+
+    document.getElementById(
+        "btn-encherir"
+    ).disabled = true;
+
+    document.getElementById(
+        "btn-abandonner"
+    ).disabled = true;
+
+    setTimeout(
+        prochainJoueurDraft,
+        2000
+    );
+}
+
+function ajouterHistorique(txt){
+
+    document.getElementById(
+        "historique-enchere"
+    ).innerHTML +=
+        `<div>${txt}</div>`;
+}
+        
+function majDraft(){
+
+    document.getElementById(
+        "budget-joueur"
+    ).innerText =
+        draftBudgetJoueur.toFixed(1);
+
+    document.getElementById(
+        "budget-bot"
+    ).innerText =
+        draftBudgetBot.toFixed(1);
+
+    document.getElementById(
+        "liste-joueur-draft"
+    ).innerHTML =
+        draftEquipeJoueur
+        .map(
+            j => `<li>${j.nom} (${j.note})</li>`
+        )
+        .join("");
+
+    document.getElementById(
+        "liste-bot-draft"
+    ).innerHTML =
+        draftEquipeBot
+        .map(
+            j => `<li>${j.nom} (${j.note})</li>`
+        )
+        .join("");
+}
+        
+function finDraft(){
+
+    const valeurJoueur =
+    draftEquipeJoueur.reduce(
+        (total, j) => total + j.prix,
+        0
+    );
+
+const valeurBot =
+    draftEquipeBot.reduce(
+        (total, j) => total + j.prix,
+        0
+    );
+
+const scoreJoueur =
+    valeurJoueur +
+    (draftBudgetJoueur / 50);
+
+const scoreBot =
+    valeurBot +
+    (draftBudgetBot / 50);
+
+    let resultat = "";
+
+    if(scoreJoueur > scoreBot){
+        resultat =
+        "🏆 Tu remportes le Draft";
+    }
+    else if(scoreBot > scoreJoueur){
+        resultat =
+        "🤖 Le bot remporte le Draft";
+    }
+    else{
+        resultat =
+        "🤝 Égalité";
+    }
+
+    document.getElementById(
+        "draft-resultat"
+    ).innerHTML = `
+        <h2>Fin de partie</h2>
+        <p>Points Joueur : ${scoreJoueur.toFixed(1)} M€</p>
+        <p>Points Bot : ${scoreBot.toFixed(1)} M€</p>
+        <h3>${resultat}</h3>
+    `;
+
+    document.getElementById(
+    "zone-restart"
+).style.display = "block";
+    
+}
+
+        function tourBotInitial(){
+
+            if(
+    bonusSautBot > 0 &&
+    joueurDraftActuel.prix <= 15 &&
+    joueurDraftActuel.note < 78
+){
+
+    bonusSautBot--;
+
+    ajouterHistorique(
+        `🤖 utilise son bonus SAUT sur ${joueurDraftActuel.nom}`
+    );
+
+    joueurDraftActuel = null;
+
+    setTimeout(
+        prochainJoueurDraft,
+        1500
+    );
+
+    return;
+}
+
+    if(draftEquipeBot.length >= 3){
+        return;
+    }
+
+    let miseDepart;
+
+if(joueurDraftActuel.note < 80){
+
+    // Joueur peu intéressant
+    miseDepart = enchereActuelle + 1;
+
+}else if(joueurDraftActuel.note < 85){
+
+    // Joueur correct
+    miseDepart =
+        enchereActuelle +
+        1 +
+        Math.floor(Math.random() * 4);
+
+}else if(joueurDraftActuel.note < 89){
+
+    // Bon joueur
+    miseDepart =
+        enchereActuelle +
+        3 +
+        Math.floor(Math.random() * 8);
+
+}else{
+
+    // Star
+    miseDepart =
+        enchereActuelle +
+        5 +
+        Math.floor(Math.random() * 15);
+}
+
+    if(miseDepart > draftBudgetBot){
+        return;
+    }
+
+    enchereActuelle =
+        miseDepart;
+
+    proprietaireEnchere =
+        "bot";
+
+    ajouterHistorique(
+        `🤖 Bot : ${miseDepart} M€`
+    );
+}
+
+function genererBonusSpecial(){
+    const r = Math.random();
+    if(r < 0.20) return "vol";
+    if(r < 0.40) return "free";
+    if(r < 0.60) return "cash";
+    return null;
+}
+
+        function afficherActuJoueur(id) {
+            afficherJoueur(id);
+        }
+ 
+        function verifierModeNuit(){
+
+    const heure = new Date().getHours();
+
+    if(heure >= 18 || heure < 7){
+
+        document.body.classList.add("mode-nuit");
+
+    }else{
+
+        document.body.classList.remove("mode-nuit");
+
+    }
+}
+
+
+verifierModeNuit();
+
+setInterval(verifierModeNuit, 60000);
+
+        function resetFiche() {
+
+    // Remet les labels d'origine
+    document.getElementById('s-age').previousElementSibling.innerText = "Âge";
+    document.getElementById('s-nat').previousElementSibling.innerText = "Nationalité";
+    document.getElementById('s-numero').previousElementSibling.innerText = "Numéro";
+
+    // Réaffiche les lignes cachées
+    document.getElementById('s-paye').parentNode.style.display = "";
+    document.getElementById('s-fin').parentNode.style.display = "";
+    document.getElementById('s-valeur').parentNode.style.display = "";
+    document.getElementById('s-noteea').parentNode.style.display = "";
+
+    // Réaffiche le bloc statistiques
+    const statsBlock = document.getElementById('s-matchs')?.parentNode?.parentNode;
+    if (statsBlock) statsBlock.style.display = "";
+}
+
+        const joueursRecherche = [
+//Gardiens//
+{nom:"Marcus Bettinelli", id:"bettinelli"},
+{nom:"Gianluigi Donnarumma", id:"donnarumma"},
+{nom:"Geronimo Rulli", id:"rulli"},    
+//Défenseurs//
+{nom:"Rayan Ait-Nouri", id:"ait-nouri"},
+{nom:"Kaden Braithwaite", id:"braithwaite"},
+{nom:"Ruben Dias", id:"dias"},
+{nom:"Marc Guéhi", id:"guehi"},
+{nom:"Josko Gvardiol", id:"gvardiol"},
+{nom:"Abdukodir Khusanov", id:"khusanov"},
+{nom:"Rico Lewis", id:"lewis"},
+{nom:"Matheus Nunes", id:"nunes"},
+{nom:"Nico O'Reilly", id:"oreilly"},
+{nom:"Vitor Reis", id:"reis"},
+//Milieux//
+{nom:"Elliot Anderson", id:"anderson"},
+{nom:"Ayyoub Bouaddi", id:"bouaddi"},
+{nom:"Rayan Cherki", id:"cherki"},
+{nom:"Enzo Fernandez", id:"fernandez"},
+{nom:"Phil Foden", id:"foden"},
+{nom:"Matéo Kovacic", id:"kovacic"},
+{nom:"Floyd Samba", id:"samba"},
+//Attaquants//
+{nom:"Allan", id:"allan"},
+{nom:"Jérémy Doku", id:"doku"},
+{nom:"Erling Haaland", id:"haaland"},
+{nom:"Ryan McAidoo", id:"mcaidoo"},
+{nom:"Iliman Ndiaye", id:"ndiaye"},
+{nom:"Antoine Semenyo", id:"semenyo"},
+//Entraîneur//
+{nom:"Enzo Maresca", id:"maresca"}
+];
+
+function calculerAge(dateNaissance) {
+    const [jour, mois, annee] = dateNaissance.split("/").map(Number);
+    const naissance = new Date(annee, mois - 1, jour);
+    const aujourdHui = new Date();
+
+    let age = aujourdHui.getFullYear() - naissance.getFullYear();
+
+    if (
+        aujourdHui.getMonth() < naissance.getMonth() ||
+        (aujourdHui.getMonth() === naissance.getMonth() &&
+         aujourdHui.getDate() < naissance.getDate())
+    ) {
+        age--;
+    }
+
+    return age + " ans";
+}
+
+function ouvrirCredits() {
+
+    showSection("credits-view");
+
+}
+
+function ouvrirDossierContrats() {
+
+    showSection('contrats-view');
+
+    const container = document.getElementById('contrats-container');
+    container.innerHTML = '';
+
+    const aujourdHui = new Date();
+
+    const joueurs = Object.entries(effectif)
+        .filter(([id, j]) => j.fin && j.fin !== "N/A")
+        .sort((a, b) => {
+
+            const [jA, mA, aA] = a[1].fin.split('/');
+            const [jB, mB, aB] = b[1].fin.split('/');
+
+            const dateA = new Date(aA, mA - 1, jA);
+            const dateB = new Date(aB, mB - 1, jB);
+
+            return dateA - dateB;
+        });
+
+    joueurs.forEach(([id, j]) => {
+
+        const [jour, mois, annee] = j.fin.split('/');
+        const dateFin = new Date(annee, mois - 1, jour);
+
+        // --- calcul en mois restants ---
+        const anneeA = aujourdHui.getFullYear();
+        const moisA = aujourdHui.getMonth();
+        const jourA = aujourdHui.getDate();
+
+        const anneeB = dateFin.getFullYear();
+        const moisB = dateFin.getMonth();
+        const jourB = dateFin.getDate();
+
+        let diffMois = (anneeB - anneeA) * 12 + (moisB - moisA);
+
+        if (jourB < jourA) {
+            diffMois -= 1;
+        }
+
+        diffMois = Math.max(0, diffMois);
+
+        let cadre = '';
+
+        if (diffMois <= 12) {
+            cadre = 'border:3px solid red;';
+        }
+
+        let texteDuree = '';
+
+if (diffMois <= 1) {
+
+    texteDuree = "Moins d'1 mois restant";
+
+} else {
+
+    const annees = Math.floor(diffMois / 12);
+    const moisRestants = diffMois % 12;
+
+    if (annees > 0 && moisRestants > 0) {
+
+        texteDuree = `${annees} an${annees > 1 ? 's' : ''} et ${moisRestants} mois restants`;
+
+    } else if (annees > 0) {
+
+        texteDuree = `${annees} an${annees > 1 ? 's' : ''} restant${annees > 1 ? 's' : ''}`;
+
+    } else {
+
+        texteDuree = `${moisRestants} mois restants`;
+
+    }
+}
+
+        container.innerHTML += `
+            <div class="centre-card"
+                 style="${cadre}"
+                 onclick="afficherJoueur('${id}')">
+
+                <img src="static/images/${j.img}">
+
+                <div class="centre-info">
+                    <h3>${j.nom}</h3>
+                    <p>📅 Fin de contrat : ${j.fin}</p>
+                    <p>⏳ ${texteDuree}</p>
+                </div>
+
+            </div>
+        `;
+    });
+}
+
+function ouvrirEffectif(){
+
+showSection("effectif-menu");
+
+}
+
+function afficherEffectifHommes(){
+
+showSection("effectif-hommes");
+
+chargerEffectifHommes();
+
+}
+
+function chargerEffectifHommes(){
+
+let zone=document.getElementById("effectif-container");
+
+zone.innerHTML="";
+
+
+for(let id in effectif){
+
+let j=effectif[id];
+
+
+zone.innerHTML += `
+
+<div class="transfert-card" onclick="afficherJoueur('${id}')">
+
+<img src="static/images/${j.img}">
+
+<div class="transfert-info">
+
+<h3>${j.nom}</h3>
+
+<p>${j.poste}</p>
+
+<p>${calculerAge(j.naissance)}</p>
+
+<p>Note EA : ${j.noteea}</p>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+}
+
+function ouvrirCentreGeneral(){
+
+    showSection("centre-formation-view");
+
+    document.getElementById("centre-title").innerHTML =
+    "🧬 Centre de formation";
+
+    let zone = document.getElementById("centre-container");
+    zone.innerHTML = "";
+
+    for(let id in centreFormation){
+
+        let j = centreFormation[id];
+
+        zone.innerHTML += `
+        <div class="transfert-card" onclick="afficherJoueur('${id}')">
+            <img src="static/images/${j.img}">
+            <div class="transfert-info">
+                <h3>${j.nom}</h3>
+                <p>${j.poste}</p>
+                <p>${calculerAge(j.naissance)}</p>
+                <p>${j.nat}</p>
+            </div>
+        </div>`;
+    }
+}
+
+    function afficherCentre(type){
+
+    showSection("centre-formation-view");
+
+    document.getElementById("centre-title").innerHTML =
+    "🧬 Centre de formation - " + type;
+
+
+    chargerJeunes(type);
+
+}
+
+function chargerJeunes(type){
+
+let zone = document.getElementById("centre-container");
+
+zone.innerHTML="";
+
+
+for(let id in centreFormation){
+
+let j = centreFormation[id];
+
+
+if(j.poste.toLowerCase() == type ||
+(type=="defenseurs" && j.poste=="Défenseur") ||
+(type=="gardiens" && j.poste=="Gardien") ||
+(type=="milieux" && j.poste=="Milieu") ||
+(type=="attaquants" && j.poste=="Attaquant")){
+
+
+zone.innerHTML += `
+
+<div class="transfert-card" onclick="afficherJoueur('${id}')">
+
+<img src="static/images/${j.img}">
+
+<div class="transfert-info">
+
+<h3>${j.nom}</h3>
+
+<p>${j.poste}</p>
+
+<p>${calculerAge(j.naissance)}</p>
+
+<p>${j.nat}</p>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+}
+
+}
+
+function afficherEffectifPret(){
+    showSection("effectif-pret");
+    renderEffectifPret();
+}
+
+function renderEffectifPret(){
+    const container = document.getElementById("effectif-pret-container");
+
+    container.innerHTML = joueursPret.map(j => `
+        <div class="centre-card">
+            <img src="${j.photo}" alt="${j.nom}">
+            <div class="centre-info">
+                <h3>${j.nom}</h3>
+                <p>📌 ${j.poste}</p>
+                <p>🏟️ Prêté à : <strong>${j.club}</strong></p>
+            </div>
+        </div>
+    `).join("");
+}
+
+function ouvrirEffectifFemmes(){
+
+showSection("effectif-femmes");
+chargerEffectifFemmes();
+
+}
+
+function afficherEffectifFemmes(){
+
+    showSection("effectif-femmes");
+
+    chargerEffectifFemmes();
+
+}
+
+function chargerEffectifFemmes(){
+
+let zone=document.getElementById("effectif-femmes-container");
+
+zone.innerHTML="";
+
+
+for(let categorie in effectifFemmes){
+
+zone.innerHTML += `<h3>${categorie}</h3>`;
+
+
+effectifFemmes[categorie].forEach(j=>{
+
+zone.innerHTML += `
+
+<div class="transfert-card">
+
+<img src="static/images/${j.img}">
+
+<div class="transfert-info">
+
+<h3>${j.nom}</h3>
+
+<p>Age : ${calculerAge(j.naissance)}</p>
+
+<p>Note EA : ${j.note}</p>
+
+</div>
+
+</div>
+
+`;
+
+});
+
+}
+
+}
+
+function afficher(id){
+
+    if (effectif[id]) {
+        afficherJoueur(id);
+        return;
+    }
+
+    console.error("Joueur introuvable :", id);
+}
+
+        
+function afficherAnniversairesMois() {
+    const container = document.getElementById("anniversaires");
+    container.innerHTML = "";
+
+    const joueurs = [];
+
+    const ajout = (collection, type) => {
+        Object.values(collection).forEach(j => {
+            joueurs.push({ ...j, type });
+        });
+    };
+
+    ajout(effectif, "hommes");
+    ajout(centreFormation, "centre");
+
+    Object.values(effectifFemmes).forEach(cat => {
+        cat.forEach(j => {
+            joueurs.push({ ...j, type: "femmes" });
+        });
+    });
+
+    const enrichis = joueurs
+        .filter(j => j.naissance)
+        .map(j => {
+            const date = j.naissance.split("/"); const jour = Number(date[0]); const mois = Number(date[1]);
+            return { ...j, jour, mois };
+        });
+
+    const moisActuel = new Date().getMonth() + 1;
+
+    const filtres = enrichis.filter(j => j.mois === moisActuel);
+
+    filtres.sort((a, b) => {
+        // 1. jour
+        if (a.jour !== b.jour) return a.jour - b.jour;
+
+        // 2. type (ordre custom)
+        const ordreType = { hommes: 1, centre: 2, femmes: 3 };
+        if (a.type !== b.type) return ordreType[a.type] - ordreType[b.type];
+
+        // 3. nom
+        return a.nom.localeCompare(b.nom);
+    });
+
+    if (filtres.length === 0) {
+        container.innerHTML = "<p>Aucun anniversaire ce mois-ci.</p>";
+        return;
+    }
+
+    filtres.forEach(j => {
+        container.innerHTML += `
+            <div class="anniversaire">
+                <span class="point ${j.type}"></span>
+                <span>${j.jour.toString().padStart(2,"0")}/${j.mois.toString().padStart(2,"0")} - ${j.nom}</span>
+            </div>
+        `;
+    });
+}
+afficherAnniversairesMois();
+        
+function searchPlayer(){
+
+let input = document.getElementById("search-player");
+let result = document.getElementById("search-results");
+
+let texte = input.value.toLowerCase();
+
+result.innerHTML="";
+selectedIndex = -1;
+
+if(texte.length < 1){
+result.style.display="none";
+return;
+}
+
+
+let trouve = joueursRecherche.filter(j =>
+j.nom.toLowerCase().includes(texte)
+);
+
+
+trouve.forEach(joueur=>{
+
+let div=document.createElement("div");
+
+div.innerHTML="⚽ "+joueur.nom;
+
+div.onclick=function(){
+
+afficherJoueur(joueur.id);
+
+result.style.display="none";
+
+input.value="";
+
+}
+
+result.appendChild(div);
+
+});
+
+
+result.style.display="block";
+
+
+}
+
+let selectedIndex = -1;
+
+document.getElementById("search-player").addEventListener("keydown", function(e) {
+    const results = document.querySelectorAll("#search-results div");
+
+    if (!results.length) return;
+
+    if (e.key === "ArrowDown") {
+        e.preventDefault();
+        selectedIndex = (selectedIndex + 1) % results.length;
+        updateSelection(results);
+    }
+
+    if (e.key === "ArrowUp") {
+        e.preventDefault();
+        selectedIndex = (selectedIndex - 1 + results.length) % results.length;
+        updateSelection(results);
+    }
+
+    if (e.key === "Enter") {
+        e.preventDefault();
+        if (selectedIndex >= 0) {
+            results[selectedIndex].click();
+        }
+    }
+});
+
+function updateSelection(results) {
+    results.forEach((r, i) => {
+        r.style.background = "";
+        r.style.color = "";
+        if (i === selectedIndex) {
+            r.style.background = "#6CABDD";
+            r.style.color = "white";
+        }
+    });
+}
+
+        function afficherRumeur(id) {
+            const r = rumeurs[id]; if(!r) return;
+            document.getElementById('rumor-name').innerText = r.nom;
+            document.getElementById('rumor-photo').src = "static/images/" + r.img;
+            document.getElementById('rumor-data').innerHTML = `<strong>Détails de la rumeur :</strong><br><br>${r.detail}`;
+            document.getElementById('btn-chat-rumor').onclick = () => ouvrirChat(r.nom);
+            showSection('rumeur-detail');
+        }
+
+        let selectedSpotElement = null;
+        function preparerCompoInteractive() { renderSquadListForCompo(); showSection('ma-compo-view'); }
+        function renderSquadListForCompo() {
+            const container = document.getElementById('liste-joueurs-compo');
+            container.innerHTML = "";
+            const postesLabel = { "Gardien": "🧤 Gardiens", "Défenseur": "🛡️ Défenseurs", "Milieu": "⚡ Milieux", "Attaquant": "⚔️ Attaquants" };
+            const postes = { "Gardien": [], "Défenseur": [], "Milieu": [], "Attaquant": [] };
+            for (let id in effectif) { const p = effectif[id].poste; if (postes[p]) postes[p].push({id: id, ...effectif[id]}); }
+            for (let pKey in postes) {
+                if (postes[pKey].length > 0) {
+                    const titre = document.createElement('div'); titre.className = "compo-cat-titre"; titre.innerText = postesLabel[pKey]; container.appendChild(titre);
+                    postes[pKey].forEach(j => {
+                        const link = document.createElement('span'); link.className = "compo-joueur-link"; link.innerText = j.nom;
+                        link.onclick = () => placerJoueur(j.id); container.appendChild(link);
+                    });
+                }
+            }
+        }
+        function selectSpot(element) { document.querySelectorAll('.player-spot').forEach(s => s.classList.remove('selected')); selectedSpotElement = element; selectedSpotElement.classList.add('selected'); }
+        function placerJoueur(joueurId) {
+            if (!selectedSpotElement) { alert("Clique d'abord sur une place vide sur le terrain 🏟️"); return; }
+            const j = effectif[joueurId]; if (!j) return;
+            const imgHolder = selectedSpotElement.querySelector('.spot-img-holder');
+            const imgEl = imgHolder.querySelector('img');
+            const nameEl = selectedSpotElement.querySelector('.spot-player-name');
+            imgEl.src = "static/images/" + j.img; imgHolder.classList.add('has-player');
+            nameEl.innerText = j.nom;
+            selectedSpotElement.classList.remove('selected'); selectedSpotElement = null;
+        }
+
+        let currentChatTopic = ""; 
+        function ouvrirChat(nom) { currentChatTopic = nom; document.getElementById('chat-titre').innerText = "Avis : " + nom; loadMessages(); showSection('chat-section'); } 
+        function toggleEmojiPicker() { const picker = document.getElementById('emoji-picker'); picker.style.display = (picker.style.display === 'grid') ? 'none' : 'grid'; } 
+        function addEmoji(e) { const i = document.getElementById('chat-input'); i.value += e; document.getElementById('emoji-picker').style.display = 'none'; } 
+        function envoyerMessage() { const i = document.getElementById('chat-input'); const val = i.value.trim(); if(!val || !currentChatTopic) return; db.collection("messages").add({ topic: currentChatTopic, text: val, date: firebase.firestore.FieldValue.serverTimestamp() }); i.value = ""; } 
+        function loadMessages() { 
+            db.collection("messages").where("topic", "==", currentChatTopic).orderBy("date", "asc").onSnapshot((snapshot) => { 
+                const container = document.getElementById('chat-messages'); container.innerHTML = ""; 
+                snapshot.forEach((doc) => { const m = document.createElement('div'); m.className = "msg"; m.innerText = doc.data().text; container.appendChild(m); }); 
+                container.scrollTop = container.scrollHeight; 
+            }); 
+        }
+        let joueurMystere = null;
+        function demarrerQuiz() {
+            const cles = Object.keys(effectif).filter(id => effectif[id].poste !== "Coach");
+            joueurMystere = effectif[cles[Math.floor(Math.random() * cles.length)]];
+            const icons = { "Gardien": "🧤", "Défenseur": "🛡️", "Milieu": "⚡", "Attaquant": "⚔️" };
+            document.getElementById('quiz-clues').innerHTML = `Poste : ${icons[joueurMystere.poste]}<br>Âge : ${calculerAge(joueurMystere.naissance)}<br>Nation : ${joueurMystere.nat}<br>Salaire : ${joueurMystere.paye}`;
+            document.getElementById('quiz-answer').value = "";
+            document.getElementById('quiz-feedback').innerText = "";
+            document.getElementById('quiz-img-result').style.display = "none";
+            showSection('quiz-view');
+        }
+
+        let deckJoueur = [];
+        let deckBot = [];
+        let carteJoueur = null;
+        let carteBot = null;
+        let critereActuel = null;
+
+function melanger(array) {
+    return array.sort(() => Math.random() - 0.5);
+}
+        
+function verifierReponseQuiz() {
+    const rep = document.getElementById('quiz-answer').value.trim().toLowerCase();
+    const f = document.getElementById('quiz-feedback');
+    if (rep === joueurMystere.nom.toLowerCase()) { f.innerText = "VRAI ! ✅"; f.style.color = "green"; }
+    else { f.innerText = "FAUX ❌ (C'était " + joueurMystere.nom + ")"; f.style.color = "red"; }
+    const img = document.getElementById('quiz-img-result');
+    img.src = "static/images/" + joueurMystere.img; img.style.display = "block";
+}
+        
+        function affichercompetitionsActuelles() {
+            // On change les textes principaux
+            document.getElementById('nom-joueur').innerText = Classement.nomCompetition;
+            document.getElementById('photo').src = "static/images/" + Classement.competitionImg;
+            document.getElementById('s-bio').innerText = "Suivi en direct des performances de l'équipe.";
+
+            // On change les LABELS (les titres des lignes) pour que ce soit propre
+            document.getElementById('s-age').previousElementSibling.innerText = "🏆 Position :";
+            document.getElementById('s-age').innerText = Classement.classement;
+
+            document.getElementById('s-nat').previousElementSibling.innerText = "📅 Avancement :";
+            document.getElementById('s-nat').innerText = "Match n°" + Classement.matchNumero;
+            
+            // On cache ou vide les lignes inutiles (salaire, fin de contrat, etc.)
+            document.getElementById('s-paye').parentNode.style.display = "none";
+            document.getElementById('s-fin').parentNode.style.display = "none";
+            document.getElementById('s-valeur').parentNode.style.display = "none";
+            document.getElementById('s-noteea').parentNode.style.display = "none";
+            
+            // On cache aussi le bloc des statistiques de joueurs s'il existe en bas
+            const statsBlock = document.getElementById('s-matchs')?.parentNode?.parentNode;
+            if (statsBlock) statsBlock.style.display = "none";
+            
+            showSection('joueur-solo');
+        }
+
+        document.getElementById("montant-enchere")
+.addEventListener("keydown", function(event){
+
+    if(event.key === "Enter"){
+
+        event.preventDefault();
+
+        if(
+            !document.getElementById("btn-encherir").disabled
+        ){
+            faireEnchere();
+        }
+    }
+});
+
+document.getElementById("quiz-answer")
+.addEventListener("keydown", function(event){
+
+    if(event.key === "Enter"){
+
+        event.preventDefault();
+        verifierReponseQuiz();
+    }
+});
+
+let classeUrgence = "";
+
+if (moisRestants <= 3) classeUrgence = "urgent-3mois";
+else if (moisRestants <= 6) classeUrgence = "urgent-6mois";
+
+</script>
+</body>
+</html>
